@@ -9,6 +9,6 @@ export interface Dependencies {
   fs: typeof fs;
   path: typeof path;
   yaml: typeof yaml;
-  blueprintAiClient: GroqClient;
+  // blueprintAiClient: GroqClient;
   // Add other dependencies as needed
 }

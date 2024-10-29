@@ -76,7 +76,7 @@ Please load the following software project description. Next prompt you will be 
 ${combinedMarkdown}
 `;
     const introResponse = await blueprintAi.getResponseFromAi(prompt);
-    console.log('Intro response:', introResponse);
+    // console.log('Intro response:', introResponse);
 
     // Step 4: Initialize the project plan
     const projectPlan: ProjectPlan = {
