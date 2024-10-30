@@ -94,7 +94,7 @@ function addOrUpdateFile(path: string, lines: string[], startIndex: number, proj
     contentLines.push(lines[i]);
     i++;
   }
-  const content = contentLines.join('\n');
+  const content = removeDividerLine(contentLines.join('\n'));
 
   if (isUpdate) {
     const file = currentFolder.files.find(file => file.name === fileName);
@@ -165,4 +165,9 @@ function deleteFile(path: string, projectPlan: ProjectPlan): void {
   } else {
     console.warn(`File ${fileName} does not exist in path ${path}`);
   }
+}
+
+function removeDividerLine(fileContent: string): string {
+  const dividerPattern = /^\/\/ Content of the file starts here\s*$/m;
+  return fileContent.replace(dividerPattern, '');
 }

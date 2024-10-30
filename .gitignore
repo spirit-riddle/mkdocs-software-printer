@@ -1,3 +1,9 @@
+# Environment:
 node_modules
 dist
 .env
+
+# Project:
+project-in-prompt-form
+generated-project
+output
