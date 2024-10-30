@@ -21,9 +21,6 @@ export function makeDependencies(): Dependencies {
     fs,
     path,
     yaml,
-    // blueprintAiClient: new GroqClient({
-    //   apiKey: process.env.BLUEPRINT_AI_API_KEY, // Ensure the API key is set in your .env file
-    // }),
     // Initialize other dependencies as needed
   };
 }

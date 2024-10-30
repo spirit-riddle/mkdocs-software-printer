@@ -1,4 +1,4 @@
-// lnov/blueprint/makeBlueprint.ts
+// lnov/virtualFolder/makeVirtualFolder.ts
 
 import { Dependencies } from '../../utils/types/dependencies';
 import writeToDrive from './verbs/writeToDrive';
@@ -6,14 +6,14 @@ import extractAiCommands from './verbs/extractAiCommands';
 import processAiCommand from './verbs/processAiCommand';
 
 /**
- * Factory function that creates a Blueprint utility object providing functions for generating and managing blueprints.
+ * Factory function that creates a VirtualFolder utility object providing functions for generating and managing virtual folders.
  *
- * @param d - The dependencies required by the Blueprint verbs.
- * @returns An object containing all the Blueprint verb functions.
+ * @param d - The dependencies required by the VirtualFolder verbs.
+ * @returns An object containing all the VirtualFolder verb functions.
  *
- * @category Blueprint
+ * @category VirtualFolder
  */
-export default function makeBlueprint(d: Dependencies) {
+export default function makeVirtualFolder(d: Dependencies) {
   return {
     /**
      * Transfers the in-memory project structure to the drive.

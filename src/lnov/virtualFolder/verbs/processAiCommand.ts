@@ -16,6 +16,8 @@ export default function processAiCommand(d: Dependencies) {
       const command = parts[0];
       const args = parts.slice(1);
 
+      console.log(`\n${command} ${args.join(' ')}`); // Log the command being executed
+
       switch (command) {
         case 'ADD_FOLDER':
           addFolder(args[0], projectPlan);

@@ -1,15 +1,15 @@
-// processes/generateBlueprintFromMkDocs/index.ts
+// processes/generateVirtualFolderFromMkDocs/index.ts
 
-import { makeDependencies } from '../../utils/makeDependencies';
-import makeMkDocs from '../../lnov/mkDocs/makeMkDocs';
-import makeBlueprint from '../../lnov/blueprint/makeBlueprint';
-import makeBlueprintAi from '../../lnov/blueprint/ai/makeBlueprintAi';
-import { Folder, ProjectPlan } from '../../lnov/blueprint/types/projectPlan';
-import { Dependencies } from '../../utils/types/dependencies';
-import makeOs from '../../lnov/os/makeOs';
+import { makeDependencies } from '../utils/makeDependencies';
+import makeMkDocs from '../lnov/mkDocs/makeMkDocs';
+import makeVirtualFolder from '../lnov/virtualFolder/makeVirtualFolder';
+import makeVirtualFolderAi from '../lnov/virtualFolder/ai/makeVirtualFolderAi';
+import { Folder, ProjectPlan } from '../lnov/virtualFolder/types/projectPlan';
+import { Dependencies } from '../utils/types/dependencies';
+import makeOs from '../lnov/os/makeOs';
 import readline from 'readline';
 
-async function generateBlueprintFromMkDocs() {
+async function generateVirtualFolderFromMkDocs() {
   const args = process.argv.slice(2);
   let inputDir = '';
   let outputDir = '';
@@ -42,8 +42,8 @@ async function generateBlueprintFromMkDocs() {
 
   const d: Dependencies = makeDependencies();
   const mkDocs = makeMkDocs(d);
-  const blueprint = makeBlueprint(d);
-  const blueprintAi = makeBlueprintAi(d);
+  const virtualFolder = makeVirtualFolder(d);
+  const virtualFolderAi = makeVirtualFolderAi(d);
   const os = makeOs(d);
 
   try {
@@ -58,8 +58,7 @@ async function generateBlueprintFromMkDocs() {
     let combinedMarkdown = '';
     for (const mkdocsFile of mkdocsFiles) {
       const mkdocsDir = d.path.dirname(mkdocsFile);
-      const mkdocsYAMLContent = await os.readFile(mkdocsFile);
-      const parsedYAML = d.yaml.parse(mkdocsYAMLContent);
+      const parsedYAML = await mkDocs.parseMkDocsYAML(mkdocsFile);
 
       const nav = parsedYAML['nav'];
       if (nav) {
@@ -75,7 +74,7 @@ You are building a software project in ${language}.
 Please load the following software project description. Next prompt you will be able to answer the problem.
 ${combinedMarkdown}
 `;
-    const introResponse = await blueprintAi.getResponseFromAi(prompt);
+    const introResponse = await virtualFolderAi.getResponseFromAi(prompt);
     // console.log('Intro response:', introResponse);
 
     // Step 4: Initialize the project plan
@@ -88,7 +87,7 @@ ${combinedMarkdown}
     };
 
     // Step 5: Load the AI Command Line Instructions once
-    const aiCommandsPath = d.path.join(__dirname, '..', 'ai-instructions', 'blueprint-generation', 'AIcommandline.md');
+    const aiCommandsPath = d.path.join(__dirname, "..", "lnov", 'virtualFolder', "ai", "instructions", 'AIcommandline.md');
     const aiCommandsInstructions = await os.readFile(aiCommandsPath);
 
     // Initialize prompt count
@@ -100,21 +99,19 @@ ${combinedMarkdown}
       .replace('**100 out of 100 prompts remaining**', `**${promptsRemaining} out of 100 prompts remaining**`);
 
     // Send the initial prompt to the AI
-    let aiResponse = await blueprintAi.getResponseFromAi(initialPrompt);
+    let aiResponse = await virtualFolderAi.getResponseFromAi(initialPrompt);
     promptsRemaining--;
 
-
-    aiResponse = await blueprintAi.getResponseFromAi("Please use these Commands to build the project from the loaded documentation. You are taking the lead now, remember to add multiple commands per prompt to speed things up. Go ahead and build this project please.")
+    aiResponse = await virtualFolderAi.getResponseFromAi("Please use these Commands to build the project from the loaded documentation. You are taking the lead now, remember to add multiple commands per prompt to speed things up. Go ahead and build this project please.");
 
     // Initialize the AI command line loop
     let aiCompleted = false;
     while (!aiCompleted && promptsRemaining > 0) {
       try {
-
-        await delay(3000)
+        await delay(3000);
 
         // Process AI commands from the response
-        const aiCommands = blueprint.extractAiCommands(aiResponse);
+        const aiCommands = virtualFolder.extractAiCommands(aiResponse);
 
         if (aiCommands.length === 0) {
           // If no commands are found, check if the AI has any questions
@@ -123,7 +120,7 @@ ${combinedMarkdown}
             // Respond to AI's questions with appropriate commands or messages
             const commandResponse = await respondToAiQuestions(aiQuestions, projectPlan);
             // Send the command response back to the AI
-            aiResponse = await blueprintAi.getResponseFromAi(commandResponse);
+            aiResponse = await virtualFolderAi.getResponseFromAi(commandResponse);
             promptsRemaining--;
             continue;
           } else {
@@ -134,7 +131,7 @@ ${combinedMarkdown}
 
         // Process each command
         for (const commandBlock of aiCommands) {
-          const result = blueprint.processAiCommand(commandBlock, projectPlan);
+          const result = virtualFolder.processAiCommand(commandBlock, projectPlan);
           if (result === 'EXIT') {
             aiCompleted = true;
             break;
@@ -155,7 +152,7 @@ ${combinedMarkdown}
       `;
 
         // Send the updated prompt to the AI
-        aiResponse = await blueprintAi.getResponseFromAi(updatedPrompt);
+        aiResponse = await virtualFolderAi.getResponseFromAi(updatedPrompt);
       } catch (error: any) {
         // Check if the error is a rate limit error
         if (error.status === 413 && error.error?.error?.code === 'rate_limit_exceeded') {
@@ -171,17 +168,17 @@ ${combinedMarkdown}
     }
 
     // Step 6: Write the updated project plan to disk
-    await blueprint.writeToDrive(projectPlan, outputDir);
-    console.log('Blueprint written to disk at', outputDir);
+    await virtualFolder.writeToDrive(projectPlan, outputDir);
+    console.log('Virtual folder written to disk at', outputDir);
   } catch (error) {
-    console.error('Error generating blueprint:', error);
+    console.error('Error generating virtual folder:', error);
   }
 }
 
-export default generateBlueprintFromMkDocs;
+export default generateVirtualFolderFromMkDocs;
 
 /**
- * Helper function to get the project structure without blueprint/context content.
+ * Helper function to get the project structure without virtual folder content.
  *
  * @param projectPlan - The current project plan.
  * @returns A string representing the project structure.
@@ -201,7 +198,6 @@ function getProjectStructure(projectPlan: ProjectPlan, depthLimit = 2): string {
   const structure = traverse(projectPlan.root, 0);
   return JSON.stringify(structure, null, 2);
 }
-
 
 /**
  * Helper function to extract questions from the AI's response.

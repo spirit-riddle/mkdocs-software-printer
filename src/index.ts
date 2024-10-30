@@ -1,3 +1,3 @@
-import generateBlueprintFromMkDocs from "./processes/generateBlueprintFromMkDocs/index"
+import generateVirtualFolderFromMkDocs from "./processes/generateVirtualFolderFromMkDocs";
 
-generateBlueprintFromMkDocs()
+generateVirtualFolderFromMkDocs();

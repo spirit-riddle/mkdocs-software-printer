@@ -3,7 +3,6 @@
 import { Dependencies } from '../../utils/types/dependencies';
 import findMkDocsFiles from './verbs/findMkDocsFiles';
 import parseMkDocsYAML from './verbs/parseMkDocsYAML';
-import aggregateMarkdown from './verbs/aggregateMarkdown';
 import readMarkdownFromNav from './verbs/readMarkdownFromNav';
 
 /**
@@ -16,7 +15,6 @@ import readMarkdownFromNav from './verbs/readMarkdownFromNav';
  *
  * - {@link findMkDocsFiles | **findMkDocsFiles(directoryPath): Promise\<string[]\>**} - Finds MkDocs YAML configuration files in a directory.
  * - {@link parseMkDocsYAML | **parseMkDocsYAML(filePath): Promise\<MkDocsConfig\>**} - Parses a MkDocs YAML configuration file.
- * - {@link aggregateMarkdown | **aggregateMarkdown(config): Promise\<string\>**} - Aggregates markdown content based on the MkDocs configuration.
  *
  * @param d - The dependencies required by the MkDocs verbs.
  * @returns An object containing all the MkDocs verb functions.
@@ -44,14 +42,6 @@ import readMarkdownFromNav from './verbs/readMarkdownFromNav';
  *     console.error('Error parsing MkDocs YAML:', error);
  *   });
  *
- * // Aggregate markdown content
- * mkDocs.aggregateMarkdown(config)
- *   .then((content) => {
- *     console.log('Aggregated markdown content:', content);
- *   })
- *   .catch((error) => {
- *     console.error('Error aggregating markdown:', error);
- *   });
  * ```
  *
  * @category MkDocs
@@ -70,14 +60,8 @@ export default function makeMkDocs(d: Dependencies) {
      * @see {@link parseMkDocsYAML}
      */
     parseMkDocsYAML: parseMkDocsYAML(d),
-    /**
-     * Aggregates markdown content based on the MkDocs configuration.
-     *
-     * @see {@link aggregateMarkdown}
-     */
-    aggregateMarkdown: aggregateMarkdown(d),
 
-        /**
+    /**
      * Reads the markdown from the nav list in the mkdocs configuration.
      *
      * @see {@link readMarkdownFromNav}

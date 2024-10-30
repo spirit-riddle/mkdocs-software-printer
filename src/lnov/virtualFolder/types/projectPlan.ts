@@ -1,3 +1,5 @@
+// lnov/virtualFolder/types/projectPlan.ts
+
 export interface ProjectPlan {
   root: Folder;
 }
