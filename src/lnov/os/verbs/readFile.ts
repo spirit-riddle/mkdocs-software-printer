@@ -1,4 +1,4 @@
-// verbs/readFile.ts
+// lnov/os/verbs/readFile.ts
 
 import { Dependencies } from '../../../utils/types/dependencies';
 

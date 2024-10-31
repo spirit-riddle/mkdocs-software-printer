@@ -1,6 +1,23 @@
+// lnov/virtualFolder/ai/verbs/getResponseFromAi.ts
+
 import { GoogleGenerativeAI, ChatSession, GenerateContentResult } from '@google/generative-ai';
 import { Dependencies } from '../../../../utils/types/dependencies';
 
+/**
+ * Sends a prompt to the AI model and retrieves the response.
+ *
+ * @param prompt - The prompt to send to the AI.
+ * @param resetHistory - Whether to reset the chat history.
+ * @returns A promise that resolves to the AI's response as a string.
+ *
+ * @example
+ * ```typescript
+ * const response = await virtualFolderAi.getResponseFromAi('Hello, AI!');
+ * console.log('AI Response:', response);
+ * ```
+ *
+ * @category VirtualFolderAI
+ */
 export default function getResponseFromAi(d: Dependencies) {
   let chatSession: ChatSession | undefined;
 

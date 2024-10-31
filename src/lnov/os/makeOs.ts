@@ -1,4 +1,4 @@
-// makeOs.ts
+// lnov/os/makeOs.ts
 
 import { Dependencies } from '../../utils/types/dependencies';
 import readFile from './verbs/readFile';
@@ -17,14 +17,22 @@ import deleteFile from './verbs/deleteFile';
  *
  * **Available Methods:**
  *
- * - {@link readFile | **readFile(filePath): Promise\<string\>**} - Reads the contents of a file.
- * - {@link writeFile | **writeFile(filePath, content): Promise\<void\>**} - Writes content to a file.
- * - {@link fileExists | **fileExists(filePath): Promise\<boolean\>**} - Checks if a file exists at a given path.
- * - {@link mkdir | **mkdir(directoryPath): Promise\<void\>**} - Creates a directory.
- * - {@link readdir | **readdir(directoryPath): Promise\<Dirent[]\>**} - Reads the contents of a directory.
- * - {@link copyFile | **copyFile(source, destination): Promise\<void\>**} - Copies a file from one location to another.
- * - {@link rename | **rename(oldPath, newPath): Promise\<void\>**} - Renames or moves a file or directory.
- * - {@link deleteFile | **deleteFile(filePath): Promise\<void\>**} - Deletes a file.
+ * - **readFile(filePath): Promise<string>**
+ *   - Reads the contents of a file.
+ * - **writeFile(filePath, content): Promise<void>**
+ *   - Writes content to a file.
+ * - **fileExists(filePath): Promise<boolean>**
+ *   - Checks if a file exists at a given path.
+ * - **mkdir(directoryPath): Promise<void>**
+ *   - Creates a directory.
+ * - **readdir(directoryPath): Promise<Dirent[]>**
+ *   - Reads the contents of a directory.
+ * - **copyFile(source, destination): Promise<void>**
+ *   - Copies a file from one location to another.
+ * - **rename(oldPath, newPath): Promise<void>**
+ *   - Renames or moves a file or directory.
+ * - **deleteFile(filePath): Promise<void>**
+ *   - Deletes a file.
  *
  * @param d - The dependencies required by the OS verbs.
  * @returns An object containing all the OS verb functions.
@@ -66,42 +74,49 @@ export default function makeOs(d: Dependencies) {
      * @see {@link readFile}
      */
     readFile: readFile(d),
+
     /**
      * Writes content to a file.
      *
      * @see {@link writeFile}
      */
     writeFile: writeFile(d),
+
     /**
      * Checks if a file exists at a given path.
      *
      * @see {@link fileExists}
      */
     fileExists: fileExists(d),
+
     /**
      * Creates a directory.
      *
      * @see {@link mkdir}
      */
     mkdir: mkdir(d),
+
     /**
      * Reads the contents of a directory.
      *
      * @see {@link readdir}
      */
     readdir: readdir(d),
+
     /**
      * Copies a file from one location to another.
      *
      * @see {@link copyFile}
      */
     copyFile: copyFile(d),
+
     /**
      * Renames or moves a file or directory.
      *
      * @see {@link rename}
      */
     rename: rename(d),
+
     /**
      * Deletes a file.
      *

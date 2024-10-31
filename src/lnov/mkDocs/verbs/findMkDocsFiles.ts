@@ -1,9 +1,9 @@
-// verbs/findMkDocsFiles.ts
+// lnov/mkDocs/verbs/findMkDocsFiles.ts
 
 import { Dependencies } from '../../../utils/types/dependencies';
 
 /**
- * Finds MkDocs YAML configuration files in a given directory.
+ * Finds MkDocs YAML configuration files (`mkdocs.yml` or `mkdocs.yaml`) in a given directory recursively.
  *
  * @param directoryPath - The path to the directory to search.
  * @returns A promise that resolves to an array of file paths to MkDocs YAML files.

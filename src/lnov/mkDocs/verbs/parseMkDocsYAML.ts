@@ -1,4 +1,4 @@
-// verbs/parseMkDocsYAML.ts
+// lnov/mkDocs/verbs/parseMkDocsYAML.ts
 
 import { Dependencies } from '../../../utils/types/dependencies';
 

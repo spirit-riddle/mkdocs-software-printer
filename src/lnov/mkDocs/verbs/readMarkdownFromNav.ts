@@ -1,4 +1,4 @@
-// building-blocks/mkDocs/verbs/readMarkdownFromNav.ts
+// lnov/mkDocs/verbs/readMarkdownFromNav.ts
 
 import { Dependencies } from '../../../utils/types/dependencies';
 import * as path from 'path';
@@ -9,6 +9,18 @@ import * as path from 'path';
  * @param nav - The navigation section from the MkDocs configuration.
  * @param mkdocsDir - The directory where the MkDocs project is located.
  * @returns A promise that resolves to the combined markdown content.
+ *
+ * @example
+ * ```typescript
+ * // Use the readMarkdownFromNav method
+ * mkDocs.readMarkdownFromNav(config.nav, 'path/to/mkdocs/docs')
+ *   .then((markdown) => {
+ *     console.log('Combined Markdown:', markdown);
+ *   })
+ *   .catch((error) => {
+ *     console.error('Error reading markdown from nav:', error);
+ *   });
+ * ```
  *
  * @category MkDocs
  */

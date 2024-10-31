@@ -1,9 +1,21 @@
+// lnov/virtualFolder/verbs/processAiCommand.ts
 
 import { Dependencies } from '../../../utils/types/dependencies';
-import { ProjectPlan, Folder, File } from '../types/projectPlan';
+import { ProjectPlan, Folder } from '../types/projectPlan';
 
+/**
+ * Processes a block of AI commands and updates the project plan accordingly.
+ *
+ * @param d - The dependencies required by the function.
+ * @returns A function that processes the command block.
+ *
+ * @category VirtualFolder
+ */
 export default function processAiCommand(d: Dependencies) {
   return function (commandBlock: string, projectPlan: ProjectPlan): string | null {
+    console.log('\nProcessing AI Command Block:\n');
+    console.log(commandBlock); // Display the entire command block received from AI
+
     const lines = commandBlock.split('\n');
     let i = 0;
     while (i < lines.length) {
@@ -16,7 +28,7 @@ export default function processAiCommand(d: Dependencies) {
       const command = parts[0];
       const args = parts.slice(1);
 
-      console.log(`\n${command} ${args.join(' ')}`); // Log the command being executed
+      console.log(`\nExecuting Command: ${command} ${args.join(' ')}`); // Log the command being executed
 
       switch (command) {
         case 'ADD_FOLDER':
@@ -38,6 +50,7 @@ export default function processAiCommand(d: Dependencies) {
           i++;
           break;
         case 'EXIT':
+          console.log('AI requested to exit.');
           return 'EXIT';
         default:
           console.warn(`Unknown command: ${command}`);
@@ -49,10 +62,13 @@ export default function processAiCommand(d: Dependencies) {
 }
 
 /**
- * Command handler functions
+ * Adds a folder to the project plan.
+ *
+ * @param path - The path of the folder to add.
+ * @param projectPlan - The current project plan.
  */
-
 function addFolder(path: string, projectPlan: ProjectPlan): void {
+  console.log(`Adding folder: ${path}`);
   const parts = path.split('/');
   let currentFolder = projectPlan.root;
 
@@ -70,7 +86,26 @@ function addFolder(path: string, projectPlan: ProjectPlan): void {
   }
 }
 
-function addOrUpdateFile(path: string, lines: string[], startIndex: number, projectPlan: ProjectPlan, isUpdate: boolean): number {
+/**
+ * Adds or updates a file in the project plan.
+ *
+ * @param path - The path of the file.
+ * @param lines - The lines from the command block.
+ * @param startIndex - The index to start reading file content.
+ * @param projectPlan - The current project plan.
+ * @param isUpdate - Whether the operation is an update.
+ * @returns The index after processing.
+ */
+function addOrUpdateFile(
+  path: string,
+  lines: string[],
+  startIndex: number,
+  projectPlan: ProjectPlan,
+  isUpdate: boolean
+): number {
+  const action = isUpdate ? 'Updating' : 'Adding';
+  console.log(`${action} file: ${path}`);
+
   const parts = path.split('/');
   const fileName = parts.pop();
   if (!fileName) return startIndex;
@@ -92,7 +127,10 @@ function addOrUpdateFile(path: string, lines: string[], startIndex: number, proj
   // Read the file content from lines
   let contentLines: string[] = [];
   let i = startIndex;
-  while (i < lines.length && !lines[i].trim().match(/^(ADD_FOLDER|ADD_FILE|UPDATE_FILE|DELETE_FOLDER|DELETE_FILE|EXIT)/)) {
+  while (
+    i < lines.length &&
+    !lines[i].trim().match(/^(ADD_FOLDER|ADD_FILE|UPDATE_FILE|DELETE_FOLDER|DELETE_FILE|EXIT)/)
+  ) {
     contentLines.push(lines[i]);
     i++;
   }
@@ -102,6 +140,7 @@ function addOrUpdateFile(path: string, lines: string[], startIndex: number, proj
     const file = currentFolder.files.find(file => file.name === fileName);
     if (file) {
       file.content = content;
+      console.log(`Updated content of file: ${path}`);
     } else {
       console.warn(`File ${fileName} does not exist in path ${path}. Creating new file.`);
       currentFolder.files.push({
@@ -116,6 +155,7 @@ function addOrUpdateFile(path: string, lines: string[], startIndex: number, proj
         name: fileName,
         content: content,
       });
+      console.log(`Added new file: ${path}`);
     } else {
       console.warn(`File ${fileName} already exists in path ${path}.`);
     }
@@ -123,7 +163,14 @@ function addOrUpdateFile(path: string, lines: string[], startIndex: number, proj
   return i;
 }
 
+/**
+ * Deletes a folder from the project plan.
+ *
+ * @param path - The path of the folder to delete.
+ * @param projectPlan - The current project plan.
+ */
 function deleteFolder(path: string, projectPlan: ProjectPlan): void {
+  console.log(`Deleting folder: ${path}`);
   const parts = path.split('/');
   const folderName = parts.pop();
   if (!folderName) return;
@@ -141,12 +188,20 @@ function deleteFolder(path: string, projectPlan: ProjectPlan): void {
   const index = currentFolder.subFolders.findIndex(f => f.name === folderName);
   if (index !== -1) {
     currentFolder.subFolders.splice(index, 1);
+    console.log(`Deleted folder: ${folderName}`);
   } else {
     console.warn(`Folder ${folderName} does not exist in path ${path}`);
   }
 }
 
+/**
+ * Deletes a file from the project plan.
+ *
+ * @param path - The path of the file to delete.
+ * @param projectPlan - The current project plan.
+ */
 function deleteFile(path: string, projectPlan: ProjectPlan): void {
+  console.log(`Deleting file: ${path}`);
   const parts = path.split('/');
   const fileName = parts.pop();
   if (!fileName) return;
@@ -164,11 +219,18 @@ function deleteFile(path: string, projectPlan: ProjectPlan): void {
   const index = currentFolder.files.findIndex(file => file.name === fileName);
   if (index !== -1) {
     currentFolder.files.splice(index, 1);
+    console.log(`Deleted file: ${fileName}`);
   } else {
     console.warn(`File ${fileName} does not exist in path ${path}`);
   }
 }
 
+/**
+ * Removes a divider line from the file content if present.
+ *
+ * @param fileContent - The content of the file.
+ * @returns The cleaned file content.
+ */
 function removeDividerLine(fileContent: string): string {
   const dividerPattern = /^\/\/ Content of the file starts here\s*$/m;
   return fileContent.replace(dividerPattern, '');

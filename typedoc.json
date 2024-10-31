@@ -1,14 +1,14 @@
 {
-  "out": "docs/mkDocs",
+  "out": "docs/typedoc",
   "exclude": ["**/node_modules/**", "**/tests/**"],
   "includeVersion": true,
   "tsconfig": "tsconfig.json",
-  "name": "OS Module Documentation",
+  "name": "MkDocs Software Printer",
   "theme": "default",
   "excludePrivate": true,
   "excludeProtected": true,
   "hideGenerator": true,
   "readme": "none",
-  "entryPoints": ["src/mkDocs"],
+  "entryPoints": ["src"],
   "entryPointStrategy": "expand"
 }
