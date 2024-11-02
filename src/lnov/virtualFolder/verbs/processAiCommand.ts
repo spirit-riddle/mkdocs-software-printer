@@ -124,7 +124,6 @@ function addOrUpdateFile(
     currentFolder = subFolder;
   }
 
-  // Read the file content from lines
   let contentLines: string[] = [];
   let i = startIndex;
   while (
@@ -134,32 +133,18 @@ function addOrUpdateFile(
     contentLines.push(lines[i]);
     i++;
   }
-  const content = removeDividerLine(contentLines.join('\n'));
+  const content = contentLines.join('\n');
 
-  if (isUpdate) {
-    const file = currentFolder.files.find(file => file.name === fileName);
-    if (file) {
-      file.content = content;
-      console.log(`Updated content of file: ${path}`);
-    } else {
-      console.warn(`File ${fileName} does not exist in path ${path}. Creating new file.`);
-      currentFolder.files.push({
-        name: fileName,
-        content: content,
-      });
-    }
+  // Check if file exists and update or add accordingly
+  const existingFile = currentFolder.files.find(file => file.name === fileName);
+  if (existingFile) {
+    existingFile.content = content;  // Update existing file content
+    console.log(`Updated content of existing file: ${path}`);
   } else {
-    // ADD_FILE
-    if (!currentFolder.files.find(file => file.name === fileName)) {
-      currentFolder.files.push({
-        name: fileName,
-        content: content,
-      });
-      console.log(`Added new file: ${path}`);
-    } else {
-      console.warn(`File ${fileName} already exists in path ${path}.`);
-    }
+    currentFolder.files.push({ name: fileName, content });
+    console.log(`Added new file: ${path}`);
   }
+
   return i;
 }
 
