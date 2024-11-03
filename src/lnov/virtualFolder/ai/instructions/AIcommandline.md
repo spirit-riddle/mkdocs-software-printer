@@ -22,8 +22,7 @@ Use these efficiently to complete the project structure before reaching the limi
      ```
 
 2. **ADD_FILE `<path>`**
-   - Add a new file at the specified path with content.
-   - The content of the file should be placed on the lines following the command.
+   - Adds content to a file at the specified path. If the file already exists, your content will be appended to it.
    - **Example**:
      ```AI_COMMANDS
      ADD_FILE project-root/section/subfolder/file.ext
@@ -32,32 +31,21 @@ Use these efficiently to complete the project structure before reaching the limi
      Line 2 of file content
      ```
    
-3. **UPDATE_FILE `<path>`**
-   - Update the specified file with new content.
-   - The content of the file should be placed on the lines following the command.
-   - **Example**:
-     ```AI_COMMANDS
-     UPDATE_FILE project-root/section/subfolder/file.ext
-     // New content of the file starts here
-     Line 1 of new content
-     Line 2 of new content
-     ```
-
-4. **DELETE_FOLDER `<path>`**
+3. **DELETE_FOLDER `<path>`**
    - Delete the specified folder and its contents.
    - **Example**:
      ```AI_COMMANDS
      DELETE_FOLDER project-root/section/subfolder
      ```
 
-5. **DELETE_FILE `<path>`**
+4. **DELETE_FILE `<path>`**
    - Delete the specified file.
    - **Example**:
      ```AI_COMMANDS
      DELETE_FILE project-root/section/subfolder/file.ext
      ```
 
-6. **EXIT**
+5. **EXIT**
    - End your session when the project structure is fully complete.
    - **Example**:
      ```AI_COMMANDS

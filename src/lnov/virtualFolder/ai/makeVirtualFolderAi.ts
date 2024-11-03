@@ -1,7 +1,9 @@
 // lnov/virtualFolder/ai/makeVirtualFolderAi.ts
 
 import { Dependencies } from '../../../utils/types/dependencies';
-import getResponseFromAi from './verbs/getResponseFromAi';
+import getResponseFromFileCompressionAi from './verbs/getResponseFromFileCompressionAi';
+import getResponseFromPlanningAi from './verbs/getResponseFromPlanningAi';
+import getResponseFromDebuggerAi from './verbs/getResponseFromDebuggerAi';
 
 /**
  * Factory function that creates the virtual folder AI utility object for interacting with the AI client.
@@ -14,10 +16,27 @@ import getResponseFromAi from './verbs/getResponseFromAi';
 export default function makeVirtualFolderAi(d: Dependencies) {
   return {
     /**
-     * Sends a prompt to the AI and returns the response.
+     * Sends a prompt to the AI and returns the response for file compression.
+     * This function does not retain session history, ensuring stateless prompts.
      *
-     * @see {@link getResponseFromAi}
+     * @see {@link getResponseFromFileCompressionAi}
      */
-    getResponseFromAi: getResponseFromAi(d),
+    getResponseFromFileCompressionAi: getResponseFromFileCompressionAi(d),
+
+    /**
+     * Sends a prompt to the AI and returns the response for planning.
+     * This function can retain session history based on the `resetHistory` parameter.
+     *
+     * @see {@link getResponseFromPlanningAi}
+     */
+    getResponseFromPlanningAi: getResponseFromPlanningAi(d),
+
+    /**
+     * Sends a prompt to the AI and returns the response for debugging.
+     * This function can retain session history based on the `resetHistory` parameter.
+     *
+     * @see {@link getResponseFromDebuggerAi}
+     */
+    getResponseFromDebuggerAi: getResponseFromDebuggerAi(d),
   };
 }

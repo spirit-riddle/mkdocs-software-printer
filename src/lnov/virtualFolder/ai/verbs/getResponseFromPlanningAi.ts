@@ -1,10 +1,11 @@
-// lnov/virtualFolder/ai/verbs/getResponseFromAi.ts
+// lnov/virtualFolder/ai/verbs/getResponseFromPlanningAi.ts
 
 import { GoogleGenerativeAI, ChatSession, GenerateContentResult } from '@google/generative-ai';
 import { Dependencies } from '../../../../utils/types/dependencies';
 
 /**
- * Sends a prompt to the AI model and retrieves the response.
+ * Sends a prompt to the AI model and retrieves the response for planning tasks.
+ * Allows for session history retention based on the `resetHistory` parameter.
  *
  * @param prompt - The prompt to send to the AI.
  * @param resetHistory - Whether to reset the chat history.
@@ -12,19 +13,19 @@ import { Dependencies } from '../../../../utils/types/dependencies';
  *
  * @example
  * ```typescript
- * const response = await virtualFolderAi.getResponseFromAi('Hello, AI!');
+ * const response = await virtualFolderAi.getResponseFromPlanningAi('Plan my tasks');
  * console.log('AI Response:', response);
  * ```
  *
  * @category VirtualFolderAI
  */
-export default function getResponseFromAi(d: Dependencies) {
+export default function getResponseFromPlanningAi(d: Dependencies) {
   let chatSession: ChatSession | undefined;
 
   const apiKey = process.env.GEMINI_API_KEY || "";
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash", // Replace with the appropriate model
+    model: "gemini-1.5-flash",
   });
 
   const generationConfig = {
@@ -37,9 +38,9 @@ export default function getResponseFromAi(d: Dependencies) {
 
   return async function (prompt: string, resetHistory = false): Promise<string> {
     if (resetHistory) {
-      chatSession = undefined; // Reset chat history
+      chatSession = undefined;
     } else if (!chatSession) {
-      chatSession = model.startChat({ generationConfig }); // Initialize chat session
+      chatSession = model.startChat({ generationConfig });
     }
 
     if (!chatSession) {

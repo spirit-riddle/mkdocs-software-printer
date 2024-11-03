@@ -4,7 +4,7 @@ import { makeDependencies } from '../utils/makeDependencies';
 import makeMkDocs from '../lnov/mkDocs/makeMkDocs';
 import makeVirtualFolder from '../lnov/virtualFolder/makeVirtualFolder';
 import makeVirtualFolderAi from '../lnov/virtualFolder/ai/makeVirtualFolderAi';
-import { Folder, ProjectPlan } from '../lnov/virtualFolder/types/projectPlan';
+import { Folder, ProjectPlan, File } from '../lnov/virtualFolder/types/projectPlan';
 import { Dependencies } from '../utils/types/dependencies';
 import makeOs from '../lnov/os/makeOs';
 import readline from 'readline';
@@ -30,14 +30,17 @@ async function generateVirtualFolderFromMkDocs() {
 
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
   const language = await new Promise<string>((resolve) => {
-    rl.question('Please specify the programming language for the project (e.g., TypeScript, JavaScript, Python): ', (answer) => {
-      rl.close();
-      resolve(answer.trim());
-    });
+    rl.question(
+      'Please specify the programming language for the project (e.g., TypeScript, JavaScript, Python): ',
+      (answer) => {
+        rl.close();
+        resolve(answer.trim());
+      }
+    );
   });
 
   const d: Dependencies = makeDependencies();
@@ -62,22 +65,23 @@ async function generateVirtualFolderFromMkDocs() {
 
       const nav = parsedYAML['nav'];
       if (nav) {
-        combinedMarkdown += await mkDocs.readMarkdownFromNav(nav, d.path.join(mkdocsDir, "docs"));
+        combinedMarkdown += await mkDocs.readMarkdownFromNav(nav, d.path.join(mkdocsDir, 'docs'));
       } else {
         console.error(`No 'nav' section found in: ${mkdocsFile}`);
       }
     }
 
-    // Step 3: Load the introduction
+    // Step 3: Load the introduction to the Planning AI
     const prompt = `
 You are building a software project in ${language}.
 Please load the following software project description. Next prompt you will be able to answer the problem.
 ${combinedMarkdown}
 `;
-    const introResponse = await virtualFolderAi.getResponseFromAi(prompt);
-    // console.log('Intro response:', introResponse);
 
-    // Step 4: Initialize the project plan
+    // Use the Planning AI to generate the project plan
+    let aiResponse = await virtualFolderAi.getResponseFromPlanningAi(prompt);
+
+    // Initialize the project plan
     const projectPlan: ProjectPlan = {
       root: {
         name: 'project-root',
@@ -86,25 +90,37 @@ ${combinedMarkdown}
       },
     };
 
-    // Step 5: Load the AI Command Line Instructions once
-    const aiCommandsPath = d.path.join(__dirname, "..", "lnov", 'virtualFolder', "ai", "instructions", 'AIcommandline.md');
+    // Load the AI Command Line Instructions
+    const aiCommandsPath = d.path.join(
+      __dirname,
+      '..',
+      'lnov',
+      'virtualFolder',
+      'ai',
+      'instructions',
+      'AIcommandline.md'
+    );
     const aiCommandsInstructions = await os.readFile(aiCommandsPath);
 
     // Initialize prompt count
     let promptsRemaining = 25;
 
     // Prepare the initial prompt with the AI Command Line Instructions
-    const initialPrompt = aiCommandsInstructions
-      .replace('${projectState}', getProjectStructure(projectPlan))
-      .replace('**100 out of 100 prompts remaining**', `**${promptsRemaining} out of 100 prompts remaining**`);
+    const initialPrompt = aiCommandsInstructions.replace(
+      '**100 out of 100 prompts remaining**',
+      `**${promptsRemaining} out of 100 prompts remaining**`
+    );
 
-    // Send the initial prompt to the AI
-    let aiResponse = await virtualFolderAi.getResponseFromAi(initialPrompt);
+    // Send the initial prompt to the Planning AI
+    aiResponse = await virtualFolderAi.getResponseFromPlanningAi(initialPrompt);
     promptsRemaining--;
 
-    aiResponse = await virtualFolderAi.getResponseFromAi("Please use these Commands to build the project from the loaded documentation. You are taking the lead now, remember to add multiple commands per prompt to speed things up. Go ahead and build this project please.");
+    aiResponse = await virtualFolderAi.getResponseFromPlanningAi(
+      'Please use these Commands to build the project from the loaded documentation. You are taking the lead now, remember to add multiple commands per prompt to speed things up. Go ahead and build this project please.'
+    );
+    promptsRemaining--;
 
-    // Initialize the AI command line loop
+    // Planning AI command loop
     let aiCompleted = false;
     while (!aiCompleted && promptsRemaining > 0) {
       try {
@@ -117,10 +133,9 @@ ${combinedMarkdown}
           // If no commands are found, check if the AI has any questions
           const aiQuestions = extractAiQuestions(aiResponse);
           if (aiQuestions.length > 0) {
-            // Respond to AI's questions with appropriate commands or messages
-            const commandResponse = await respondToAiQuestions(aiQuestions, projectPlan);
-            // Send the command response back to the AI
-            aiResponse = await virtualFolderAi.getResponseFromAi(commandResponse);
+            // Respond to AI's questions
+            const commandResponse = await respondToAiQuestions(aiQuestions);
+            aiResponse = await virtualFolderAi.getResponseFromPlanningAi(commandResponse);
             promptsRemaining--;
             continue;
           } else {
@@ -138,36 +153,47 @@ ${combinedMarkdown}
           }
         }
 
-        // Decrement prompts remaining
         promptsRemaining--;
 
         // Prepare the updated prompt for the AI
         const updatedPrompt = `
-      You have ${promptsRemaining} out of 100 prompts remaining.
-      
-      Current Project Structure (limited view):
-      ${getProjectStructure(projectPlan)}
-      
-      Please provide your next commands.
-      `;
+You have ${promptsRemaining} out of 100 prompts remaining.
 
-        // Send the updated prompt to the AI
-        aiResponse = await virtualFolderAi.getResponseFromAi(updatedPrompt);
+Current Project Structure (limited view):
+${getProjectStructure(projectPlan)}
+
+Please provide your next commands.
+`;
+
+        aiResponse = await virtualFolderAi.getResponseFromPlanningAi(updatedPrompt);
       } catch (error: any) {
-        // Check if the error is a rate limit error
-        if (error.status === 413 && error.error?.error?.code === 'rate_limit_exceeded') {
-          const retryAfter = parseInt(error.headers['retry-after'] || '60', 10);
-          console.warn(`Rate limit exceeded. Waiting for ${retryAfter} seconds before retrying...`);
-          await delay(retryAfter * 1000);
-          continue; // Retry the loop after waiting
-        } else {
-          // For other errors, rethrow
-          throw error;
-        }
+        console.error('Error during Planning AI interaction:', error);
+        break;
       }
     }
 
-    // Step 6: Write the updated project plan to disk
+    // Step 4: After Planning AI session ends, invoke the File Compression AI
+    // Find files with the same name in the project plan
+    const filesByName = collectFilesByName(projectPlan.root);
+
+    // For each group of files with the same name, ask the File Compression AI to combine them
+    for (const [fileName, fileList] of Object.entries(filesByName)) {
+      if (fileList.length > 1) {
+        // Prepare the prompt for File Compression AI
+        let compressionPrompt = `These ${fileList.length} files are supposed to be one file:\n`;
+        for (const fileInfo of fileList) {
+          compressionPrompt += `\`\`\`${fileInfo.path}\n${fileInfo.file.content}\n\`\`\`\n`;
+        }
+
+        // Call the File Compression AI to combine the files
+        const combinedContent = await virtualFolderAi.getResponseFromFileCompressionAi(compressionPrompt);
+
+        // Replace the multiple files with the combined file in the project plan
+        replaceFilesWithCombined(projectPlan.root, fileName, combinedContent);
+      }
+    }
+
+    // Step 5: Write the updated project plan to disk
     await virtualFolder.writeToDrive(projectPlan, outputDir);
     console.log('Virtual folder written to disk at', outputDir);
   } catch (error) {
@@ -200,6 +226,60 @@ function getProjectStructure(projectPlan: ProjectPlan, depthLimit = 2): string {
 }
 
 /**
+ * Collects files by their names across the project plan.
+ *
+ * @param folder - The root folder to start collecting from.
+ * @returns An object mapping file names to arrays of files with that name.
+ */
+function collectFilesByName(folder: Folder, currentPath = ''): { [fileName: string]: { file: File; path: string }[] } {
+  let filesByName: { [fileName: string]: { file: File; path: string }[] } = {};
+
+  const folderPath = currentPath ? `${currentPath}/${folder.name}` : folder.name;
+
+  for (const file of folder.files) {
+    if (!filesByName[file.name]) {
+      filesByName[file.name] = [];
+    }
+    filesByName[file.name].push({ file, path: `${folderPath}/${file.name}` });
+  }
+
+  for (const subFolder of folder.subFolders) {
+    const subFilesByName = collectFilesByName(subFolder, folderPath);
+    for (const [fileName, fileList] of Object.entries(subFilesByName)) {
+      if (!filesByName[fileName]) {
+        filesByName[fileName] = [];
+      }
+      filesByName[fileName].push(...fileList);
+    }
+  }
+
+  return filesByName;
+}
+
+/**
+ * Replaces multiple files with the combined file content in the project plan.
+ *
+ * @param folder - The folder to process.
+ * @param fileName - The name of the files to replace.
+ * @param combinedContent - The combined content from the File Compression AI.
+ */
+function replaceFilesWithCombined(folder: Folder, fileName: string, combinedContent: string) {
+  // Remove files with the given name in this folder
+  const hasFile = folder.files.some((file) => file.name === fileName);
+  folder.files = folder.files.filter((file) => file.name !== fileName);
+
+  // Add the combined file if any files were removed
+  if (hasFile) {
+    folder.files.push({ name: fileName, content: combinedContent });
+  }
+
+  // Recursively process subfolders
+  for (const subFolder of folder.subFolders) {
+    replaceFilesWithCombined(subFolder, fileName, combinedContent);
+  }
+}
+
+/**
  * Helper function to extract questions from the AI's response.
  *
  * @param aiResponse - The AI's response.
@@ -221,22 +301,18 @@ function extractAiQuestions(aiResponse: string): string[] {
  * Helper function to respond to AI's questions.
  *
  * @param questions - An array of questions from the AI.
- * @param projectPlan - The current project plan.
- * @returns A string containing the AI_COMMANDS to respond.
+ * @returns A string containing the response to the AI.
  */
-async function respondToAiQuestions(questions: string[], projectPlan: ProjectPlan): Promise<string> {
-  // For simplicity, we'll assume we can respond with an appropriate command
-  // In practice, you might need to implement logic to generate commands based on the questions
+async function respondToAiQuestions(questions: string[]): Promise<string> {
+  // Implement logic to generate appropriate responses to the AI's questions
   let response = '';
 
   for (const question of questions) {
     console.log(`AI asked: ${question}`);
-    // Here you can implement logic to generate appropriate commands
-    // For now, we'll respond with a placeholder
+    // For simplicity, we'll instruct the AI to proceed
     response += `I cannot answer that question directly, but please proceed with your commands.\n`;
   }
 
-  // Wrap the response in AI_COMMANDS block if needed
   return response;
 }
 
