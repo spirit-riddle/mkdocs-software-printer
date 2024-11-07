@@ -445,12 +445,6 @@ function getProjectStructure(projectPlan: ProjectPlan): string {
   return JSON.stringify(structure, null, 2);
 }
 
-/**
- * Helper function to get the full project code.
- *
- * @param folder - The root folder.
- * @returns A string containing all code files in the project.
- */
 
 /**
  * Helper function to get the full project code with line numbers.
@@ -459,7 +453,7 @@ function getProjectStructure(projectPlan: ProjectPlan): string {
  * @param currentPath - Tracks the path as we traverse (used recursively).
  * @returns A string containing all code files in the project, with line numbers.
  */
-function getFullProjectCode(folder: Folder): string {
+function getFullProjectCode(folder: Folder, currentPath: string = ''): string {
   let code = '';
 
   function cleanCodeContent(content: string, fileName: string): string {
@@ -471,19 +465,31 @@ function getFullProjectCode(folder: Folder): string {
     return content;
   }
 
-  for (const file of folder.files) {
-    const filePath = `${folder.name}/${file.name}`;
-    const cleanedContent = cleanCodeContent(file.content, file.name);
+  function normalizePath(path: string): string {
+    // Normalize the path by replacing multiple instances of "project-root/"
+    return path.replace(/\/project-root\/project-root\//g, '/project-root/');
+  }
 
-    code += `\n\n## ${filePath}\n\n\`\`\`\n${cleanedContent}\n\`\`\`\n`;
+  for (const file of folder.files) {
+    let filePath = `${currentPath}/${folder.name}/${file.name}`.replace(/\/+/g, '/');
+    filePath = normalizePath(filePath); // Normalize path if needed
+    const cleanedContent = cleanCodeContent(file.content, file.name);
+    const numberedLines = cleanedContent
+      .split('\n')
+      .map((line, index) => `${index + 1}: ${line}`)
+      .join('\n');
+
+    code += `\n\n## ${filePath}\n\n\`\`\`\n${numberedLines}\n\`\`\`\n`;
   }
 
   for (const subFolder of folder.subFolders) {
-    code += getFullProjectCode(subFolder);
+    code += getFullProjectCode(subFolder, `${currentPath}/${folder.name}`);
   }
 
   return code;
 }
+
+
 
 
 

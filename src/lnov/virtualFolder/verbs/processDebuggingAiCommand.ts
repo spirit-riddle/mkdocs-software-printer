@@ -9,12 +9,13 @@ export default function processDebuggingAiCommand(d: Dependencies) {
     console.log('\nProcessing Debugging AI Command Block:\n');
     console.log(commandBlock);
 
+    // Ensure the project structure is properly flattened
     flattenProjectRoot(projectPlan);
 
     const lines = commandBlock.split('\n');
     let i = 0;
     const updatedFiles: Set<string> = new Set();
-    const modifiedFiles: Set<string> = new Set(); // Track files already modified in this block
+    const modifiedFiles: Set<string> = new Set();
     let exitCommand = false;
 
     while (i < lines.length) {
@@ -32,10 +33,9 @@ export default function processDebuggingAiCommand(d: Dependencies) {
         break;
       }
 
-      // Use this function before processing commands
       const normalizedFilePath = normalizePath(filePath);
 
-      // Check if the file has already been modified in this block
+      // Skip if file has already been modified in this block
       if (command === 'SELECT_FILE' && normalizedFilePath && operation) {
         if (modifiedFiles.has(normalizedFilePath)) {
           console.warn(`Ignoring additional command for ${normalizedFilePath} as it has already been modified.`);
@@ -45,9 +45,10 @@ export default function processDebuggingAiCommand(d: Dependencies) {
 
         const lineNumberArgs = args.map(arg => parseInt(arg, 10));
         const result = handleFileOperation(normalizedFilePath, operation, lineNumberArgs, lines, i + 1, projectPlan, updatedFiles);
+        
         if (result.success) {
           i = result.nextIndex;
-          modifiedFiles.add(normalizedFilePath); // Mark file as modified
+          modifiedFiles.add(normalizedFilePath);
         } else {
           console.warn(`Error processing command: ${line}`);
           i++;
@@ -63,32 +64,36 @@ export default function processDebuggingAiCommand(d: Dependencies) {
 }
 
 
+
 /**
  * Flattens nested project-root folders within the project plan by merging their contents.
  */
 function flattenProjectRoot(projectPlan: ProjectPlan) {
   const root = projectPlan.root;
-  const flattenedFiles = new Set<string>();
 
   function recursivelyFlatten(folder: Folder) {
-    const nestedRoots = folder.subFolders.filter((sub): sub is Folder => sub.name === 'project-root');
+    const nestedFolders = folder.subFolders.filter(sub => sub.name === 'project-root');
 
-    for (const nestedRoot of nestedRoots) {
-      for (const file of nestedRoot.files) {
-        if (!flattenedFiles.has(file.name)) {
-          root.files.push(file);
-          flattenedFiles.add(file.name);
-        }
-      }
+    for (const nestedRoot of nestedFolders) {
+      // Move files from the nested root to the main root
+      root.files.push(...nestedRoot.files);
+      nestedRoot.files = [];
+
+      // Move subfolders from nested root to main root, avoiding duplicates
       root.subFolders.push(...nestedRoot.subFolders);
+      nestedRoot.subFolders = [];
 
-      folder.subFolders = folder.subFolders.filter((sub) => sub !== nestedRoot);
+      // Remove the nested `project-root` subfolder after flattening its contents
+      folder.subFolders = folder.subFolders.filter(sub => sub !== nestedRoot);
+
       recursivelyFlatten(nestedRoot);
     }
   }
 
   recursivelyFlatten(root);
 }
+
+
 
 function handleFileOperation(
   filePath: string,
@@ -152,6 +157,12 @@ function applyOperationToFile(
 }
 
 function findFileInProjectPlan(filePath: string, projectPlan: ProjectPlan): File | null {
+// filePath = '/project-root/utils/makeDependencies.ts' 
+
+
+  // Normalize the file path to prevent redundant `project-root` segments
+  filePath = filePath.replace(/\/project-root(\/project-root)+/g, '/project-root').replace(/^\//, '');
+
   const parts = filePath.split('/');
   let currentFolder = projectPlan.root;
 
@@ -159,9 +170,11 @@ function findFileInProjectPlan(filePath: string, projectPlan: ProjectPlan): File
     parts.shift();
   }
 
+  // Traverse through the folder structure based on path segments
   for (let i = 0; i < parts.length - 1; i++) {
     const part = parts[i];
     const subFolder = currentFolder.subFolders.find(f => f.name === part);
+
     if (!subFolder) {
       console.warn(`Subfolder ${part} not found in path ${filePath}`);
       return null;
@@ -169,6 +182,7 @@ function findFileInProjectPlan(filePath: string, projectPlan: ProjectPlan): File
     currentFolder = subFolder;
   }
 
+  // Locate the file in the final folder
   const fileName = parts[parts.length - 1];
   const file = currentFolder.files.find(f => f.name === fileName);
 
@@ -178,6 +192,7 @@ function findFileInProjectPlan(filePath: string, projectPlan: ProjectPlan): File
 
   return file || null;
 }
+
 
 function replaceLinesInFile(file: File, startLine: number, endLine: number, content: string) {
   const lines = file.content.split('\n');
@@ -234,9 +249,9 @@ function deleteLinesInFile(file: File, startLine: number, endLine: number) {
   }
 }
 
-function normalizePath(filePath: string): string {
-  // Ensure path does not have duplicate `project-root` folders
-  return filePath.replace(/^project-root(\/project-root)+/, 'project-root');
-}
 
+function normalizePath(filePath: string): string {
+  // Remove redundant `project-root` layers and ensure a clean path
+  return filePath.replace(/\/project-root(\/project-root)+/g, '/project-root').replace(/^\//, '');
+}
 
