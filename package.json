@@ -1,5 +1,5 @@
 {
-  "name": "typescript-modular-project",
+  "name": "mkdocs-software-printer",
   "version": "1.0.0",
   "description": "A modular TypeScript project that processes MkDocs and generates files.",
   "main": "src/index.ts",
@@ -21,7 +21,9 @@
     "testRegex": "(/test/.*|(\\.|/)(test|spec))\\.ts$"
   },
   "dependencies": {
+    "@google-ai/generativelanguage": "^2.7.0",
     "@google/generative-ai": "^0.21.0",
+    "@maverick-spirit/talk-track": "^0.0.4",
     "@types/js-yaml": "^4.0.9",
     "dotenv": "^16.4.5",
     "js-yaml": "^4.1.0",

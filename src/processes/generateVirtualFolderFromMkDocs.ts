@@ -8,6 +8,7 @@ import { Folder, ProjectPlan, File } from '../lnov/virtualFolder/types/projectPl
 import { Dependencies } from '../utils/types/dependencies';
 import makeOs from '../lnov/os/makeOs';
 import readline from 'readline';
+import talkTrack from "@maverick-spirit/talk-track"
 
 async function generateVirtualFolderFromMkDocs() {
   const args = process.argv.slice(2);
@@ -72,14 +73,26 @@ async function generateVirtualFolderFromMkDocs() {
     }
 
     // Step 3: Load the introduction to the Planning AI
-    const prompt = `
+    let prompt = `
 You are building a software project in ${language}.
 Please load the following software project description. Next prompt you will be able to answer the problem.
 ${combinedMarkdown}
 `;
 
+    // debugging conversation
+    talkTrack.log({
+      role: 'Application', // or 'AI'
+      message: prompt
+    });
+
     // Use the Planning AI to generate the project plan
     let aiResponse = await virtualFolderAi.getResponseFromPlanningAi(prompt);
+
+    // debugging conversation
+    talkTrack.log({
+      role: 'Planning-AI', // or 'AI'
+      message: aiResponse
+    });
 
     // Initialize the project plan
     const projectPlan: ProjectPlan = {
@@ -98,7 +111,7 @@ ${combinedMarkdown}
       'virtualFolder',
       'ai',
       'instructions',
-      'AIcommandline.md'
+      'AIPlanningCommandline.md'
     );
     const aiCommandsInstructions = await os.readFile(aiCommandsPath);
 
@@ -111,14 +124,43 @@ ${combinedMarkdown}
       `**${promptsRemaining} out of 100 prompts remaining**`
     );
 
+    // debugging conversation
+    talkTrack.log({
+      role: 'Application', // or 'AI'
+      message: initialPrompt
+    });
+
     // Send the initial prompt to the Planning AI
     aiResponse = await virtualFolderAi.getResponseFromPlanningAi(initialPrompt);
+
+    // debugging conversation
+    talkTrack.log({
+      role: 'Planning-AI', // or 'AI'
+      message: aiResponse
+    });
+
     promptsRemaining--;
 
-    aiResponse = await virtualFolderAi.getResponseFromPlanningAi(
-      'Please use these Commands to build the project from the loaded documentation. You are taking the lead now, remember to add multiple commands per prompt to speed things up. Go ahead and build this project please.'
-    );
+    prompt = 'Please use these Commands to build the project from the loaded documentation. You are taking the lead now, remember to add multiple commands per prompt to speed things up. Go ahead and build this project please.'
+
+    // debugging conversation
+    talkTrack.log({
+      role: 'Application', // or 'AI'
+      message: prompt
+    });
+
+    aiResponse = await virtualFolderAi.getResponseFromPlanningAi(prompt)
+
+    // debugging conversation
+    talkTrack.log({
+      role: 'Planning-AI', // or 'AI'
+      message: aiResponse
+    });
+
+
     promptsRemaining--;
+
+    // Planning AI command loop
 
     // Planning AI command loop
     let aiCompleted = false;
@@ -127,26 +169,15 @@ ${combinedMarkdown}
         await delay(3000);
 
         // Process AI commands from the response
-        const aiCommands = virtualFolder.extractAiCommands(aiResponse);
+        const aiCommands = virtualFolder.extractPlanningAiCommands(aiResponse);
 
         if (aiCommands.length === 0) {
-          // If no commands are found, check if the AI has any questions
-          const aiQuestions = extractAiQuestions(aiResponse);
-          if (aiQuestions.length > 0) {
-            // Respond to AI's questions
-            const commandResponse = await respondToAiQuestions(aiQuestions);
-            aiResponse = await virtualFolderAi.getResponseFromPlanningAi(commandResponse);
-            promptsRemaining--;
-            continue;
-          } else {
-            console.log('No AI_COMMANDS found and no questions detected. Exiting...');
-            break;
-          }
+          // ... [Your existing code for handling no commands]
         }
 
-        // Process each command
+        // Process each command using processPlanningAiCommand
         for (const commandBlock of aiCommands) {
-          const result = virtualFolder.processAiCommand(commandBlock, projectPlan);
+          const result = virtualFolder.processPlanningAiCommand(commandBlock, projectPlan);
           if (result === 'EXIT') {
             aiCompleted = true;
             break;
@@ -165,12 +196,27 @@ ${getProjectStructure(projectPlan)}
 Please provide your next commands.
 `;
 
+
+        // debugging conversation
+        talkTrack.log({
+          role: 'Application', // or 'AI'
+          message: updatedPrompt
+        });
+
         aiResponse = await virtualFolderAi.getResponseFromPlanningAi(updatedPrompt);
+
+        // debugging conversation
+        talkTrack.log({
+          role: 'Planning-AI', // or 'AI'
+          message: aiResponse
+        });
+
       } catch (error: any) {
         console.error('Error during Planning AI interaction:', error);
         break;
       }
     }
+
 
     // Step 4: After Planning AI session ends, invoke the File Compression AI
     // Find files with the same name in the project plan
@@ -180,20 +226,187 @@ Please provide your next commands.
     for (const [fileName, fileList] of Object.entries(filesByName)) {
       if (fileList.length > 1) {
         // Prepare the prompt for File Compression AI
-        let compressionPrompt = `These ${fileList.length} files are supposed to be one file:\n`;
+        let compressionPrompt = `These ${fileList.length} files are supposed to be one file, merge all the code together into one file, I want to see code:\n`;
         for (const fileInfo of fileList) {
           compressionPrompt += `\`\`\`${fileInfo.path}\n${fileInfo.file.content}\n\`\`\`\n`;
         }
 
+        // debugging conversation
+        talkTrack.log({
+          role: 'Application', // or 'AI'
+          message: compressionPrompt
+        });
+
         // Call the File Compression AI to combine the files
         const combinedContent = await virtualFolderAi.getResponseFromFileCompressionAi(compressionPrompt);
+
+        // debugging conversation
+        talkTrack.log({
+          role: 'FileCompression-AI', // or 'AI'
+          message: aiResponse
+        });
 
         // Replace the multiple files with the combined file in the project plan
         replaceFilesWithCombined(projectPlan.root, fileName, combinedContent);
       }
     }
 
-    // Step 5: Write the updated project plan to disk
+    // Step 5: Invoke the Debugging AI
+    // Load the AI Command Line Instructions for the Debugger AI
+    const debuggerAiCommandsPath = d.path.join(
+      __dirname,
+      '..',
+      'lnov',
+      'virtualFolder',
+      'ai',
+      'instructions',
+      'AIDebuggerCommandline.md'
+    );
+    const debuggerAiCommandsInstructions = await os.readFile(debuggerAiCommandsPath);
+
+    // Prepare the prompt for the Debugger AI
+    console.log('Loading Debugger');
+
+    let debuggingPrompt = `
+You are now debugging the following project. Here is the current code:
+
+${getFullProjectCode(projectPlan.root)}
+
+Please use the following command line to make changes to the code to fix any issues:
+
+${debuggerAiCommandsInstructions}
+
+You have ${promptsRemaining} out of 100 prompts remaining.
+
+Please begin debugging now.
+
+`;
+
+    // debugging conversation
+    talkTrack.log({
+      role: 'Application', // or 'AI'
+      message: debuggingPrompt
+    });
+
+    aiResponse = await virtualFolderAi.getResponseFromDebuggerAi(debuggingPrompt);
+
+    // debugging conversation
+    talkTrack.log({
+      role: 'Debugging-AI', // or 'AI'
+      message: aiResponse
+    });
+
+
+    promptsRemaining--;
+
+    console.log('Debugger Loaded Successfully');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Debugger AI command loop
+    aiCompleted = false;
+    console.log('Debugging');
+    while (!aiCompleted && promptsRemaining > 0) {
+      try {
+        await delay(3000);
+
+        // Process AI commands from the response
+        const aiCommands = virtualFolder.extractDebuggerAiCommands(aiResponse);
+
+        if (aiCommands.length > 0) {
+          let modifiedFiles: string[] = [];
+
+          for (const commandBlock of aiCommands) {
+            const result = virtualFolder.processDebuggingAiCommand(commandBlock, projectPlan);
+            if (result.exit) {
+              aiCompleted = true;
+              break;
+            }
+            modifiedFiles.push(...result.updatedFiles);
+
+            if (result.updatedFiles.length > 0) {
+              console.log('Updated files:', result.updatedFiles);
+            }
+          }
+
+          promptsRemaining--;
+
+          // Prepare the updated prompt for the AI
+          debuggingPrompt = `
+      You have ${promptsRemaining} out of 100 prompts remaining.
+
+      Current Code (Modified Files Only):
+
+      ${getModifiedFilesCode(projectPlan.root, modifiedFiles)}
+
+      Please provide your next commands.
+      `;
+
+          // debugging conversation
+          talkTrack.log({
+            role: 'Application',
+            message: debuggingPrompt
+          });
+
+          aiResponse = await virtualFolderAi.getResponseFromDebuggerAi(debuggingPrompt);
+
+          // debugging conversation
+          talkTrack.log({
+            role: 'Debugging-AI',
+            message: aiResponse
+          });
+
+          continue;
+        }
+
+        // No commands found, check for questions instead
+        const aiQuestions = extractAiQuestions(aiResponse);
+        if (aiQuestions.length > 0) {
+          const commandResponse = await respondToAiQuestions(aiQuestions);
+
+          // debugging conversation
+          talkTrack.log({
+            role: 'Application',
+            message: commandResponse
+          });
+
+          aiResponse = await virtualFolderAi.getResponseFromDebuggerAi(commandResponse);
+
+          // debugging conversation
+          talkTrack.log({
+            role: 'Debugging-AI',
+            message: aiResponse
+          });
+
+          promptsRemaining--;
+          continue;
+        }
+
+        // No commands or questions found, exit debugger
+        console.log('No AI_COMMANDS found and no questions detected. Exiting debugger...');
+        break;
+      } catch (error: any) {
+        console.error('Error during Debugging AI interaction:', error);
+        break;
+      }
+    }
+    console.log('Debugging Completed');
+
+
+
+    // Step 6: Write the updated project plan to disk
     await virtualFolder.writeToDrive(projectPlan, outputDir);
     console.log('Virtual folder written to disk at', outputDir);
   } catch (error) {
@@ -209,21 +422,54 @@ export default generateVirtualFolderFromMkDocs;
  * @param projectPlan - The current project plan.
  * @returns A string representing the project structure.
  */
-function getProjectStructure(projectPlan: ProjectPlan, depthLimit = 2): string {
-  function traverse(folder: Folder, depth: number): any {
-    if (depth >= depthLimit) {
-      return { name: folder.name, subFolders: '...', files: '...' };
-    }
+/**
+ * Helper function to get the full project structure, adhering to the `ProjectPlan` interface.
+ *
+ * @param projectPlan - The current project plan.
+ * @returns A JSON string representing the project structure.
+ */
+function getProjectStructure(projectPlan: ProjectPlan): string {
+  function traverse(folder: Folder): any {
     return {
       name: folder.name,
-      subFolders: folder.subFolders.map((subFolder) => traverse(subFolder, depth + 1)),
-      files: folder.files.map((file) => file.name),
+      files: folder.files.map(file => ({ name: file.name })),
+      subFolders: folder.subFolders.map(subFolder => traverse(subFolder))
     };
   }
 
-  const structure = traverse(projectPlan.root, 0);
+  const structure = traverse(projectPlan.root);
   return JSON.stringify(structure, null, 2);
 }
+
+/**
+ * Helper function to get the full project code.
+ *
+ * @param folder - The root folder.
+ * @returns A string containing all code files in the project.
+ */
+/**
+ * Helper function to get the full project code with line numbers.
+ *
+ * @param folder - The root folder.
+ * @returns A string containing all code files in the project, with line numbers.
+ */
+function getFullProjectCode(folder: Folder): string {
+  let code = '';
+
+  for (const file of folder.files) {
+    const lines = file.content.split('\n');
+    const numberedLines = lines.map((line, index) => `${index + 1}: ${line}`).join('\n');
+
+    code += `\n\n## ${folder.name}/${file.name}\n\n\`\`\`\n${numberedLines}\n\`\`\`\n`;
+  }
+
+  for (const subFolder of folder.subFolders) {
+    code += getFullProjectCode(subFolder);
+  }
+
+  return code;
+}
+
 
 /**
  * Collects files by their names across the project plan.
@@ -315,6 +561,31 @@ async function respondToAiQuestions(questions: string[]): Promise<string> {
 
   return response;
 }
+
+function getModifiedFilesCode(folder: Folder, modifiedFiles: string[]): string {
+  let code = '';
+
+  for (const file of folder.files) {
+    // Adjust filePath to exclude the root folder name for comparison
+    const filePath = `${folder.name}/${file.name}`;
+    const adjustedFilePath = filePath.startsWith('project-root/') ? filePath.replace('project-root/', '') : filePath;
+
+    if (modifiedFiles.includes(adjustedFilePath)) {
+      const lines = file.content.split('\n');
+      const numberedLines = lines.map((line, index) => `${index + 1}: ${line}`).join('\n');
+      code += `\n\n## ${filePath}\n\n\`\`\`\n${numberedLines}\n\`\`\`\n`;
+    }
+  }
+
+  for (const subFolder of folder.subFolders) {
+    code += getModifiedFilesCode(subFolder, modifiedFiles);
+  }
+
+  return code;
+}
+
+
+
 
 /**
  * Delays the execution for the specified number of milliseconds.

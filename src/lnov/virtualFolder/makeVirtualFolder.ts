@@ -1,9 +1,11 @@
-// lnov/virtualFolder/makeVirtualFolder.ts
+// src/lnov/virtualFolder/makeVirtualFolder.ts
 
 import { Dependencies } from '../../utils/types/dependencies';
 import writeToDrive from './verbs/writeToDrive';
-import extractAiCommands from './verbs/extractAiCommands';
-import processAiCommand from './verbs/processAiCommand';
+import extractPlanningAiCommands from './verbs/extractPlanningAiCommands';
+import extractDebuggerAiCommands from './verbs/extractDebuggerAiCommands';
+import processPlanningAiCommand from './verbs/processPlanningAiCommand';
+import processDebuggingAiCommand from './verbs/processDebuggingAiCommand';
 
 /**
  * Factory function that creates a VirtualFolder utility object providing functions for generating and managing virtual folders.
@@ -25,15 +27,29 @@ export default function makeVirtualFolder(d: Dependencies) {
     /**
      * Extracts AI_COMMANDS blocks from the AI's response.
      *
-     * @see {@link extractAiCommands}
+     * @see {@link extractPlanningAiCommands}
      */
-    extractAiCommands: extractAiCommands(d),
+    extractPlanningAiCommands: extractPlanningAiCommands(d),
 
     /**
-     * Processes a single AI_COMMANDS block.
+     * Extracts TOOL_CODE blocks from the AI's response.
      *
-     * @see {@link processAiCommand}
+     * @see {@link extractDebuggerAiCommands}
      */
-    processAiCommand: processAiCommand(d),
+    extractDebuggerAiCommands: extractDebuggerAiCommands(d),
+
+    /**
+     * Processes commands from the Planning AI.
+     *
+     * @see {@link processPlanningAiCommand}
+     */
+    processPlanningAiCommand: processPlanningAiCommand(d),
+
+    /**
+     * Processes commands from the Debugging AI.
+     *
+     * @see {@link processDebuggingAiCommand}
+     */
+    processDebuggingAiCommand: processDebuggingAiCommand(d),
   };
 }
