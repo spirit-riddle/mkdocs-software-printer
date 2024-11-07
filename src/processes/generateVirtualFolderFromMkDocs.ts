@@ -10,6 +10,8 @@ import makeOs from '../lnov/os/makeOs';
 import readline from 'readline';
 import talkTrack from "@maverick-spirit/talk-track"
 
+const totalPromptsAllowed = 25
+
 async function generateVirtualFolderFromMkDocs() {
   const args = process.argv.slice(2);
   let inputDir = '';
@@ -116,7 +118,7 @@ ${combinedMarkdown}
     const aiCommandsInstructions = await os.readFile(aiCommandsPath);
 
     // Initialize prompt count
-    let promptsRemaining = 25;
+    let promptsRemaining = totalPromptsAllowed;
 
     // Prepare the initial prompt with the AI Command Line Instructions
     const initialPrompt = aiCommandsInstructions.replace(
@@ -188,7 +190,7 @@ ${combinedMarkdown}
 
         // Prepare the updated prompt for the AI
         const updatedPrompt = `
-You have ${promptsRemaining} out of 100 prompts remaining.
+You have ${promptsRemaining} out of ${totalPromptsAllowed} prompts remaining.
 
 Current Project Structure (limited view):
 ${getProjectStructure(projectPlan)}
@@ -317,6 +319,7 @@ Please begin debugging now.
 
     // Debugger AI command loop
     aiCompleted = false;
+    promptsRemaining = totalPromptsAllowed;
     console.log('Debugging');
     while (!aiCompleted && promptsRemaining > 0) {
       try {
@@ -345,7 +348,7 @@ Please begin debugging now.
 
           // Prepare the updated prompt for the AI
           debuggingPrompt = `
-      You have ${promptsRemaining} out of 100 prompts remaining.
+      You have ${promptsRemaining} out of ${totalPromptsAllowed} prompts remaining.
 
       Current Code (Modified Files Only):
 
@@ -447,28 +450,39 @@ function getProjectStructure(projectPlan: ProjectPlan): string {
  * @param folder - The root folder.
  * @returns A string containing all code files in the project.
  */
+
 /**
  * Helper function to get the full project code with line numbers.
  *
  * @param folder - The root folder.
+ * @param currentPath - Tracks the path as we traverse (used recursively).
  * @returns A string containing all code files in the project, with line numbers.
  */
-function getFullProjectCode(folder: Folder): string {
+function getFullProjectCode(folder: Folder, currentPath = 'project-root'): string {
   let code = '';
 
+  // Ensure "project-root" appears only once at the beginning of the path
+  const sanitizedPath = currentPath.replace(/^project-root\/project-root/, 'project-root');
+
+  // Iterate over all files and construct paths
   for (const file of folder.files) {
+    const filePath = `${sanitizedPath}/${file.name}`;
     const lines = file.content.split('\n');
     const numberedLines = lines.map((line, index) => `${index + 1}: ${line}`).join('\n');
-
-    code += `\n\n## ${folder.name}/${file.name}\n\n\`\`\`\n${numberedLines}\n\`\`\`\n`;
+    code += `\n\n## ${filePath}\n\n\`\`\`\n${numberedLines}\n\`\`\`\n`;
   }
 
+  // Recursively process subfolders
   for (const subFolder of folder.subFolders) {
-    code += getFullProjectCode(subFolder);
+    // Remove any extra instances of "project-root" from nested paths
+    const subFolderPath = `${sanitizedPath}/${subFolder.name}`.replace(/^project-root\/project-root/, 'project-root');
+    code += getFullProjectCode(subFolder, subFolderPath);
   }
 
   return code;
 }
+
+
 
 
 /**
@@ -562,27 +576,32 @@ async function respondToAiQuestions(questions: string[]): Promise<string> {
   return response;
 }
 
-function getModifiedFilesCode(folder: Folder, modifiedFiles: string[]): string {
+function getModifiedFilesCode(folder: Folder, modifiedFiles: string[], currentPath = ''): string {
   let code = '';
+  const folderPath = currentPath ? `${currentPath}/${folder.name}` : folder.name;
 
+  // Iterate over each file in the folder
   for (const file of folder.files) {
-    // Adjust filePath to exclude the root folder name for comparison
-    const filePath = `${folder.name}/${file.name}`;
-    const adjustedFilePath = filePath.startsWith('project-root/') ? filePath.replace('project-root/', '') : filePath;
+    const filePath = `${folderPath}/${file.name}`;
 
-    if (modifiedFiles.includes(adjustedFilePath)) {
+    // Check if the constructed file path is in the modified files list
+    if (modifiedFiles.includes(filePath)) {
       const lines = file.content.split('\n');
       const numberedLines = lines.map((line, index) => `${index + 1}: ${line}`).join('\n');
       code += `\n\n## ${filePath}\n\n\`\`\`\n${numberedLines}\n\`\`\`\n`;
     }
   }
 
+  // Recursively process subfolders, passing down the accumulated path
   for (const subFolder of folder.subFolders) {
-    code += getModifiedFilesCode(subFolder, modifiedFiles);
+    code += getModifiedFilesCode(subFolder, modifiedFiles, folderPath);
   }
 
   return code;
 }
+
+
+
 
 
 

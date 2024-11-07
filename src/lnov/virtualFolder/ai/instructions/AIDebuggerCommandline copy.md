@@ -1,10 +1,6 @@
-Here’s the updated documentation:
-
----
-
 # AI Debugger Command Line Instructions
 
-Use these commands to modify code files, focusing on connecting project files, resolving dependencies, and fixing syntax issues. Each prompt should contain only **one command per file**. Commands for multiple files can be included, but **only the first command for each file will be applied**; any subsequent commands for the same file will be ignored.
+Use these commands to modify code files, focusing on connecting all project files, resolving missing dependencies, and fixing syntax issues. Each prompt should contain only one command per file; the first command per file will take precedence.
 
 ### Commands
 
@@ -14,7 +10,7 @@ Use these commands to modify code files, focusing on connecting project files, r
   - Example:
     ```tool_code
     SELECT_FILE path/to/file.txt REPLACE_LINES 10 12
-    // Replacement content for lines 10-12
+    // Replacement content here
     ```
 
 - **Delete a Single Line**
@@ -51,6 +47,15 @@ Use these commands to modify code files, focusing on connecting project files, r
     // New content to add below line 5
     ```
 
+- **Ensure File Interconnections**
+  - `ENSURE_CONNECTION <source_file> TO <target_file>`
+  - Adds references or imports to ensure `source_file` is properly connected with `target_file`. This command is language-agnostic but can be used to fix missing imports, module references, or dependency statements.
+  - Example:
+    ```tool_code
+    ENSURE_CONNECTION path/to/source_file.txt TO path/to/target_file.txt
+    // Code to connect these files here
+    ```
+
 - **View File Content**
   - `LOOK_AT_FILE <file_path>`
   - Displays the content of the specified file.
@@ -63,29 +68,25 @@ Use these commands to modify code files, focusing on connecting project files, r
   - `EXIT`
   - Ends the debugging session.
 
-### Multi-file Commands
+### Multi-command Usage
 
-To apply commands to multiple files, use separate `tool_code` blocks with only **one command per file**. If multiple commands are given for the same file within one prompt, only the first command will be processed, and any following commands for that file will be ignored.
+For multiple commands, use separate `tool_code` blocks. Only one edit command per file is allowed in each prompt, but multiple files can be addressed.
 
 Example:
 ```tool_code
-SELECT_FILE path/to/file1.txt REPLACE_LINES 10 12
-// New content for lines 10-12 in file1
+SELECT_FILE path/to/file.txt REPLACE_LINES 20 22
+// New content for lines 20-22
 ```
 
 ```tool_code
-SELECT_FILE path/to/file2.txt DELETE_LINE 15
+ENSURE_CONNECTION path/to/source_file.txt TO path/to/target_file.txt
+// Code to connect these files here
 ```
 
 ```tool_code
-SELECT_FILE path/to/file3.txt ADD_ABOVE 5
-// New content to add above line 5 in file3
+LOOK_AT_FILE path/to/file.txt
 ```
 
 ---
 
-### Important Note on Command Usage
-
-Only the first command per file is accepted in each prompt. Subsequent commands for the same file will be ignored to ensure consistent processing. If you need to apply additional changes to the same file, please submit them in a new prompt. 
-
-This approach helps maintain a structured debugging process by focusing on one command per file at a time, ensuring all project files are consistently connected and functional.
+Use these commands to guide the AI in modifying code to create or repair file connections, resolve missing dependencies, and correct syntax. Focus on creating a fully functional and interconnected project.

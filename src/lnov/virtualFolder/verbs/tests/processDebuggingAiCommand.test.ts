@@ -1,10 +1,7 @@
-// src/lnov/virtualFolder/verbs/test/processDebuggingAiCommand.test.ts
-
-import processDebuggingAiCommand from '../processDebuggingAiCommand';
-import extractDebuggerAiCommands from '../extractDebuggerAiCommands';
-import { makeDependencies } from '../../../../utils/makeDependencies';
-import { ProjectPlan } from '../../types/projectPlan';
 import { Dependencies } from '../../../../utils/types/dependencies';
+import { makeDependencies } from '../../../../utils/makeDependencies';
+import { ProjectPlan, File } from '../../types/projectPlan';
+import processDebuggingAiCommand from '../processDebuggingAiCommand';
 
 describe('processDebuggingAiCommand', () => {
   let dependencies: Dependencies;
@@ -41,6 +38,21 @@ describe('processDebuggingAiCommand', () => {
     return file;
   }
 
+  it('should process "ENSURE_CONNECTION" command correctly', () => {
+    const sourceFile = addFileToProjectPlan('project-root/src/index.ts', 'console.log("Index file");');
+    const targetFile = addFileToProjectPlan('project-root/src/utils/helper.ts', 'export function helper() {}');
+    
+    const commandBlock = `
+      ENSURE_CONNECTION project-root/src/index.ts TO project-root/src/utils/helper.ts
+      // Added import statement for helper function
+    `;
+
+    const { updatedFiles } = processDebuggingAiCommand(dependencies)(commandBlock, projectPlan);
+    
+    expect(updatedFiles).toContain('project-root/src/index.ts');
+    expect(sourceFile.content).toContain(`import { helper } from './utils/helper';`);
+  });
+
   it('should process "REPLACE_LINES" command correctly', () => {
     const file = addFileToProjectPlan('project-root/index.ts', 'line1\nline2\nline3\nline4\nline5');
     const commandBlock = `
@@ -49,7 +61,7 @@ describe('processDebuggingAiCommand', () => {
       replaced line3
       replaced line4
     `;
-    
+
     const { updatedFiles } = processDebuggingAiCommand(dependencies)(commandBlock, projectPlan);
     expect(updatedFiles).toContain('project-root/index.ts');
     expect(file.content).toBe('line1\nreplaced line2\nreplaced line3\nreplaced line4\nline5');
@@ -90,19 +102,44 @@ describe('processDebuggingAiCommand', () => {
     expect(file.content).toBe('line1\nline2\nline4');
   });
 
-  it('should handle unknown commands and log a warning', () => {
-    const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+  it('should process "DELETE_LINES" command correctly', () => {
+    const file = addFileToProjectPlan('project-root/index.ts', 'line1\nline2\nline3\nline4\nline5');
     const commandBlock = `
-      UNKNOWN_COMMAND project-root/index.ts 1 1
+      SELECT_FILE project-root/index.ts DELETE_LINES 2 4
     `;
 
-    processDebuggingAiCommand(dependencies)(commandBlock, projectPlan);
-
-    expect(consoleWarnMock).toHaveBeenCalledWith(expect.stringContaining('Unknown or malformed command: UNKNOWN_COMMAND'));
-    consoleWarnMock.mockRestore();
+    const { updatedFiles } = processDebuggingAiCommand(dependencies)(commandBlock, projectPlan);
+    expect(updatedFiles).toContain('project-root/index.ts');
+    expect(file.content).toBe('line1\nline5');
   });
 
-  it('should exit processing on "EXIT" command', () => {
+  it('should handle "LOOK_AT_FILE" command correctly', () => {
+    const file = addFileToProjectPlan('project-root/index.ts', 'line1\nline2\nline3');
+    const commandBlock = `
+      LOOK_AT_FILE project-root/index.ts
+    `;
+
+    const { updatedFiles } = processDebuggingAiCommand(dependencies)(commandBlock, projectPlan);
+    expect(updatedFiles).not.toContain('project-root/index.ts');
+    expect(file.content).toBe('line1\nline2\nline3');
+  });
+
+  it('should handle single-command-per-file rule', () => {
+    const file = addFileToProjectPlan('project-root/index.ts', 'line1\nline2\nline3\nline4\nline5');
+    const commandBlock = `
+      SELECT_FILE project-root/index.ts REPLACE_LINES 2 4
+      replaced line2
+      replaced line3
+      replaced line4
+      SELECT_FILE project-root/index.ts DELETE_LINE 3
+    `;
+
+    const { updatedFiles } = processDebuggingAiCommand(dependencies)(commandBlock, projectPlan);
+    expect(updatedFiles).toContain('project-root/index.ts');
+    expect(file.content).toBe('line1\nreplaced line2\nreplaced line3\nreplaced line4\nline5');
+  });
+
+  it('should handle "EXIT" command and stop processing further commands', () => {
     const file = addFileToProjectPlan('project-root/index.ts', 'line1\nline2\nline3\nline4\nline5');
     const commandBlock = `
       SELECT_FILE project-root/index.ts REPLACE_LINES 1 1
@@ -119,45 +156,16 @@ describe('processDebuggingAiCommand', () => {
     expect(file.content).toBe('new line\nline2\nline3\nline4\nline5');
   });
 
-  it('should handle combined command blocks in correct sequence', () => {
-    const file = addFileToProjectPlan('project-root/index.ts', 'line1\nline2\nline3\nline4\nline5');
-    const aiResponse = `
-      <pre>
-      \`\`\`tool_code
-      SELECT_FILE project-root/index.ts REPLACE_LINES 2 4
-      replaced line2
-      replaced line3
-      replaced line4
-      \`\`\`
-      </pre>
-      <pre>
-      \`\`\`tool_code
-      SELECT_FILE project-root/index.ts ADD_ABOVE 2
-      added above line2
-      \`\`\`
-      </pre>
-      <pre>
-      \`\`\`tool_code
-      SELECT_FILE project-root/index.ts ADD_BELOW 3
-      added below line2
-      \`\`\`
-      </pre>
+  it('should handle unknown commands and log a warning', () => {
+    const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+    const commandBlock = `
+      UNKNOWN_COMMAND project-root/index.ts 1 1
     `;
 
-    const commands = extractDebuggerAiCommands(dependencies)(aiResponse);
-    const expectedIntermediateStates = [
-      'line1\nreplaced line2\nreplaced line3\nreplaced line4\nline5', // After REPLACE_LINES
-      'line1\nadded above line2\nreplaced line2\nreplaced line3\nreplaced line4\nline5', // After ADD_ABOVE
-      'line1\nadded above line2\nreplaced line2\nadded below line2\nreplaced line3\nreplaced line4\nline5' // After ADD_BELOW
-    ];
+    processDebuggingAiCommand(dependencies)(commandBlock, projectPlan);
 
-    commands.forEach((commandBlock, index) => {
-      const { updatedFiles } = processDebuggingAiCommand(dependencies)(commandBlock, projectPlan);
-      expect(updatedFiles).toContain('project-root/index.ts');
-      
-      // Verify intermediate content state after each command
-      expect(file.content).toBe(expectedIntermediateStates[index]);
-    });
+    expect(consoleWarnMock).toHaveBeenCalledWith(expect.stringContaining('Unknown or malformed command: UNKNOWN_COMMAND'));
+    consoleWarnMock.mockRestore();
   });
 
   it('should handle missing files gracefully', () => {
