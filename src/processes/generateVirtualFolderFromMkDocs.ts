@@ -123,7 +123,7 @@ ${combinedMarkdown}
     // Prepare the initial prompt with the AI Command Line Instructions
     const initialPrompt = aiCommandsInstructions.replace(
       '**100 out of 100 prompts remaining**',
-      `**${promptsRemaining} out of 100 prompts remaining**`
+      `**${promptsRemaining} out of ${totalPromptsAllowed} prompts remaining**`
     );
 
     // debugging conversation
@@ -222,6 +222,7 @@ Please provide your next commands.
 
     // Step 4: After Planning AI session ends, invoke the File Compression AI
     // Find files with the same name in the project plan
+    promptsRemaining = totalPromptsAllowed;
     const filesByName = collectFilesByName(projectPlan.root);
 
     // For each group of files with the same name, ask the File Compression AI to combine them
@@ -278,7 +279,7 @@ Please use the following command line to make changes to the code to fix any iss
 
 ${debuggerAiCommandsInstructions}
 
-You have ${promptsRemaining} out of 100 prompts remaining.
+You have ${promptsRemaining} out of ${totalPromptsAllowed} prompts remaining.
 
 Please begin debugging now.
 
@@ -458,29 +459,32 @@ function getProjectStructure(projectPlan: ProjectPlan): string {
  * @param currentPath - Tracks the path as we traverse (used recursively).
  * @returns A string containing all code files in the project, with line numbers.
  */
-function getFullProjectCode(folder: Folder, currentPath = 'project-root'): string {
+function getFullProjectCode(folder: Folder): string {
   let code = '';
 
-  // Ensure "project-root" appears only once at the beginning of the path
-  const sanitizedPath = currentPath.replace(/^project-root\/project-root/, 'project-root');
-
-  // Iterate over all files and construct paths
-  for (const file of folder.files) {
-    const filePath = `${sanitizedPath}/${file.name}`;
-    const lines = file.content.split('\n');
-    const numberedLines = lines.map((line, index) => `${index + 1}: ${line}`).join('\n');
-    code += `\n\n## ${filePath}\n\n\`\`\`\n${numberedLines}\n\`\`\`\n`;
+  function cleanCodeContent(content: string, fileName: string): string {
+    // Only clean content if it's not a Markdown file
+    if (!fileName.endsWith('.md')) {
+      // Remove ` ```typescript ` from the start and trailing ` ``` ` from the end
+      return content.replace(/^```typescript\s*|\s*```$/g, '').trim();
+    }
+    return content;
   }
 
-  // Recursively process subfolders
+  for (const file of folder.files) {
+    const filePath = `${folder.name}/${file.name}`;
+    const cleanedContent = cleanCodeContent(file.content, file.name);
+
+    code += `\n\n## ${filePath}\n\n\`\`\`\n${cleanedContent}\n\`\`\`\n`;
+  }
+
   for (const subFolder of folder.subFolders) {
-    // Remove any extra instances of "project-root" from nested paths
-    const subFolderPath = `${sanitizedPath}/${subFolder.name}`.replace(/^project-root\/project-root/, 'project-root');
-    code += getFullProjectCode(subFolder, subFolderPath);
+    code += getFullProjectCode(subFolder);
   }
 
   return code;
 }
+
 
 
 

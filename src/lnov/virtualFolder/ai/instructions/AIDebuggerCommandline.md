@@ -1,10 +1,11 @@
-Here’s the updated documentation:
-
----
-
 # AI Debugger Command Line Instructions
 
-Use these commands to modify code files, focusing on connecting project files, resolving dependencies, and fixing syntax issues. Each prompt should contain only **one command per file**. Commands for multiple files can be included, but **only the first command for each file will be applied**; any subsequent commands for the same file will be ignored.
+Use these commands to modify code files, focusing on connecting project files and resolving dependencies. Each prompt should contain only **one command per file**. Commands for multiple files can be included, allowing updates across many files simultaneously. However, **only the first command for each file will be applied**; any subsequent commands for the same file in the same prompt will be ignored.
+
+### Important Rules
+
+- **Only Import Modifications**: This debugging process focuses solely on ensuring files are interconnected correctly. In programming languages, this means only modifying import or include statements to connect project files. Ignore any commands that involve content other than import or dependency-related adjustments.
+- **One Command per File**: Only the first command per file is accepted in each prompt, with any additional commands for that file ignored to avoid conflicts.
 
 ### Commands
 
@@ -39,7 +40,7 @@ Use these commands to modify code files, focusing on connecting project files, r
   - Example:
     ```tool_code
     SELECT_FILE path/to/file.txt ADD_ABOVE 5
-    // New content to add above line 5
+    // New import statement or connection for line 5
     ```
 
 - **Add Content Below a Line**
@@ -48,7 +49,7 @@ Use these commands to modify code files, focusing on connecting project files, r
   - Example:
     ```tool_code
     SELECT_FILE path/to/file.txt ADD_BELOW 5
-    // New content to add below line 5
+    // New import statement or connection below line 5
     ```
 
 - **View File Content**
@@ -65,12 +66,12 @@ Use these commands to modify code files, focusing on connecting project files, r
 
 ### Multi-file Commands
 
-To apply commands to multiple files, use separate `tool_code` blocks with only **one command per file**. If multiple commands are given for the same file within one prompt, only the first command will be processed, and any following commands for that file will be ignored.
+To apply commands to multiple files, use separate `tool_code` blocks with **one command per file**. If multiple commands are given for the same file within one prompt, only the first command will be processed, and subsequent commands for that file will be ignored.
 
 Example:
 ```tool_code
 SELECT_FILE path/to/file1.txt REPLACE_LINES 10 12
-// New content for lines 10-12 in file1
+// New import for lines 10-12 in file1
 ```
 
 ```tool_code
@@ -79,13 +80,13 @@ SELECT_FILE path/to/file2.txt DELETE_LINE 15
 
 ```tool_code
 SELECT_FILE path/to/file3.txt ADD_ABOVE 5
-// New content to add above line 5 in file3
+// New import added above line 5 in file3
 ```
 
 ---
 
-### Important Note on Command Usage
+### Additional Notes
 
-Only the first command per file is accepted in each prompt. Subsequent commands for the same file will be ignored to ensure consistent processing. If you need to apply additional changes to the same file, please submit them in a new prompt. 
+This command-line interface is designed to focus strictly on establishing inter-file connections and dependencies through import statements. Ensure that only import-related commands are issued, with other types of modifications ignored.
 
-This approach helps maintain a structured debugging process by focusing on one command per file at a time, ensuring all project files are consistently connected and functional.
+If additional changes are needed for a file beyond the first command, submit them in a separate prompt to maintain a structured debugging process. This method promotes consistency and ensures functional connectivity across all files, with multiple files updated in each prompt as needed.
