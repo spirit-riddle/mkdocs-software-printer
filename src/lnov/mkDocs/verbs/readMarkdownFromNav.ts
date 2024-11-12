@@ -4,25 +4,24 @@ import { Dependencies } from '../../../utils/types/dependencies';
 import * as path from 'path';
 
 /**
- * Reads markdown content based on the navigation section in the MkDocs configuration.
+ * **Read Markdown from Navigation**
+ *
+ * Reads and concatenates markdown content based on the navigation section (`nav`) in the MkDocs configuration.
  *
  * @param nav - The navigation section from the MkDocs configuration.
  * @param mkdocsDir - The directory where the MkDocs project is located.
- * @returns A promise that resolves to the combined markdown content.
+ * @returns A promise that resolves to the combined markdown content as a string.
+ *
+ * @throws Will throw an error if any markdown file in the navigation cannot be read.
  *
  * @example
  * ```typescript
- * // Use the readMarkdownFromNav method
- * mkDocs.readMarkdownFromNav(config.nav, 'path/to/mkdocs/docs')
- *   .then((markdown) => {
- *     console.log('Combined Markdown:', markdown);
- *   })
- *   .catch((error) => {
- *     console.error('Error reading markdown from nav:', error);
- *   });
+ * const markdown = await mkDocs.readMarkdownFromNav(config.nav, 'path/to/mkdocs/docs');
+ * console.log('Combined Markdown:', markdown);
  * ```
  *
- * @category MkDocs
+ * @see {@link parseMkDocsYAML}
+ * @category MkDocs Verbs
  */
 export default function readMarkdownFromNav(d: Dependencies) {
   return async function (nav: any, mkdocsDir: string): Promise<string> {

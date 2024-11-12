@@ -8,21 +8,46 @@ import { Folder, ProjectPlan, File } from '../lnov/virtualFolder/types/projectPl
 import { Dependencies } from '../utils/types/dependencies';
 import makeOs from '../lnov/os/makeOs';
 import readline from 'readline';
-import talkTrack from "@maverick-spirit/talk-track"
+import talkTrack from "@maverick-spirit/talk-track";
 
-const totalPromptsAllowed = 25
+const totalPromptsAllowed = 25;
 
+/**
+ * **Generate Virtual Folder from MkDocs**
+ *
+ * Orchestrates the process of generating a virtual folder structure from MkDocs documentation by interacting with AI models for planning, compression, and debugging tasks.
+ *
+ * **Process Overview:**
+ * 1. **Find MkDocs Files:** Searches for `mkdocs.yml` files in the specified input directory.
+ * 2. **Read Markdown Content:** Extracts markdown content based on the navigation configuration.
+ * 3. **Interact with Planning AI:** Uses the Planning AI to create an initial project plan.
+ * 4. **File Compression AI:** Merges files with the same name across the project structure.
+ * 5. **Experimental Debugger AI (Optional):** Interacts with the Debugger AI to refine the code.
+ * 6. **Write to Disk:** Outputs the final project structure to the specified output directory.
+ *
+ * @example
+ * ```shell
+ * npm start -- --input ./docs --output ./output --experimental-debugger
+ * ```
+ *
+ * @category Processes
+ */
 async function generateVirtualFolderFromMkDocs() {
   const args = process.argv.slice(2);
   let inputDir = '';
   let outputDir = '';
+  let experimentalDebuggerEnabled = false;
 
+  // Parse command line arguments
   args.forEach((arg, index) => {
     if (arg === '--input' && args[index + 1]) {
       inputDir = args[index + 1];
     }
     if (arg === '--output' && args[index + 1]) {
       outputDir = args[index + 1];
+    }
+    if (arg === '--experimental-debugger') {
+      experimentalDebuggerEnabled = true;
     }
   });
 
@@ -254,23 +279,23 @@ Please provide your next commands.
       }
     }
 
-    // Step 5: Invoke the Debugging AI
-    // Load the AI Command Line Instructions for the Debugger AI
-    const debuggerAiCommandsPath = d.path.join(
-      __dirname,
-      '..',
-      'lnov',
-      'virtualFolder',
-      'ai',
-      'instructions',
-      'AIDebuggerCommandline.md'
-    );
-    const debuggerAiCommandsInstructions = await os.readFile(debuggerAiCommandsPath);
+    // Step 5: Conditional Debugger AI
+    if (experimentalDebuggerEnabled) {
+      console.log('Experimental Debugger enabled. Loading Debugger...');
+      promptsRemaining = totalPromptsAllowed;
 
-    // Prepare the prompt for the Debugger AI
-    console.log('Loading Debugger');
+      const debuggerAiCommandsPath = d.path.join(
+        __dirname,
+        '..',
+        'lnov',
+        'virtualFolder',
+        'ai',
+        'instructions',
+        'AIDebuggerCommandline.md'
+      );
+      const debuggerAiCommandsInstructions = await os.readFile(debuggerAiCommandsPath);
 
-    let debuggingPrompt = `
+      let debuggingPrompt = `
 You are now debugging the following project. Here is the current code:
 
 ${getFullProjectCode(projectPlan.root)}
@@ -282,141 +307,90 @@ ${debuggerAiCommandsInstructions}
 You have ${promptsRemaining} out of ${totalPromptsAllowed} prompts remaining.
 
 Please begin debugging now.
-
 `;
 
-    // debugging conversation
-    talkTrack.log({
-      role: 'Application', // or 'AI'
-      message: debuggingPrompt
-    });
+      talkTrack.log({
+        role: 'Application', // or 'AI'
+        message: debuggingPrompt
+      });
 
-    aiResponse = await virtualFolderAi.getResponseFromDebuggerAi(debuggingPrompt);
+      let aiResponse = await virtualFolderAi.getResponseFromDebuggerAi(debuggingPrompt);
 
-    // debugging conversation
-    talkTrack.log({
-      role: 'Debugging-AI', // or 'AI'
-      message: aiResponse
-    });
+      // Debugger AI command loop
+      let aiCompleted = false;
 
+      console.log('Debugger Loaded Successfully');
+      console.log('Debugging');
 
-    promptsRemaining--;
+      while (!aiCompleted && promptsRemaining > 0) {
+        try {
+          await delay(3000);
 
-    console.log('Debugger Loaded Successfully');
+          // Process AI commands from the response
+          const aiCommands = virtualFolder.extractDebuggerAiCommands(aiResponse);
 
+          if (aiCommands.length > 0) {
+            let modifiedFiles: string[] = [];
 
+            for (const commandBlock of aiCommands) {
+              const result = virtualFolder.processDebuggingAiCommand(commandBlock, projectPlan);
+              if (result.exit) {
+                aiCompleted = true;
+                break;
+              }
+              modifiedFiles.push(...result.updatedFiles);
 
-
-
-
-
-
-
-
-
-
-
-
-
-    // Debugger AI command loop
-    aiCompleted = false;
-    promptsRemaining = totalPromptsAllowed;
-    console.log('Debugging');
-    while (!aiCompleted && promptsRemaining > 0) {
-      try {
-        await delay(3000);
-
-        // Process AI commands from the response
-        const aiCommands = virtualFolder.extractDebuggerAiCommands(aiResponse);
-
-        if (aiCommands.length > 0) {
-          let modifiedFiles: string[] = [];
-
-          for (const commandBlock of aiCommands) {
-            const result = virtualFolder.processDebuggingAiCommand(commandBlock, projectPlan);
-            if (result.exit) {
-              aiCompleted = true;
-              break;
+              if (result.updatedFiles.length > 0) {
+                console.log('Updated files:', result.updatedFiles);
+              }
             }
-            modifiedFiles.push(...result.updatedFiles);
 
-            if (result.updatedFiles.length > 0) {
-              console.log('Updated files:', result.updatedFiles);
-            }
+            promptsRemaining--;
+
+            debuggingPrompt = `
+You have ${promptsRemaining} out of ${totalPromptsAllowed} prompts remaining.
+
+Current Code (Modified Files Only):
+
+${getModifiedFilesCode(projectPlan.root, modifiedFiles)}
+
+Please provide your next commands.
+`;
+
+            talkTrack.log({
+              role: 'Application',
+              message: debuggingPrompt
+            });
+
+            aiResponse = await virtualFolderAi.getResponseFromDebuggerAi(debuggingPrompt);
           }
 
-          promptsRemaining--;
-
-          // Prepare the updated prompt for the AI
-          debuggingPrompt = `
-      You have ${promptsRemaining} out of ${totalPromptsAllowed} prompts remaining.
-
-      Current Code (Modified Files Only):
-
-      ${getModifiedFilesCode(projectPlan.root, modifiedFiles)}
-
-      Please provide your next commands.
-      `;
-
-          // debugging conversation
-          talkTrack.log({
-            role: 'Application',
-            message: debuggingPrompt
-          });
-
-          aiResponse = await virtualFolderAi.getResponseFromDebuggerAi(debuggingPrompt);
-
-          // debugging conversation
-          talkTrack.log({
-            role: 'Debugging-AI',
-            message: aiResponse
-          });
-
-          continue;
+        } catch (error) {
+          console.error('Error during Debugging AI interaction:', error);
+          break;
         }
-
-        // No commands found, check for questions instead
-        const aiQuestions = extractAiQuestions(aiResponse);
-        if (aiQuestions.length > 0) {
-          const commandResponse = await respondToAiQuestions(aiQuestions);
-
-          // debugging conversation
-          talkTrack.log({
-            role: 'Application',
-            message: commandResponse
-          });
-
-          aiResponse = await virtualFolderAi.getResponseFromDebuggerAi(commandResponse);
-
-          // debugging conversation
-          talkTrack.log({
-            role: 'Debugging-AI',
-            message: aiResponse
-          });
-
-          promptsRemaining--;
-          continue;
-        }
-
-        // No commands or questions found, exit debugger
-        console.log('No AI_COMMANDS found and no questions detected. Exiting debugger...');
-        break;
-      } catch (error: any) {
-        console.error('Error during Debugging AI interaction:', error);
-        break;
       }
+      console.log('Debugging Completed');
+
+
+      // Step 6: Write the updated project plan to disk
+      await virtualFolder.writeToDrive(projectPlan, outputDir);
+      console.log('Virtual folder written to disk at', outputDir);
     }
-    console.log('Debugging Completed');
 
-
-
+    
     // Step 6: Write the updated project plan to disk
     await virtualFolder.writeToDrive(projectPlan, outputDir);
     console.log('Virtual folder written to disk at', outputDir);
+
   } catch (error) {
     console.error('Error generating virtual folder:', error);
+  } finally {
+    console.log('Debugging Completed');
   }
 }
+
+
 
 export default generateVirtualFolderFromMkDocs;
 

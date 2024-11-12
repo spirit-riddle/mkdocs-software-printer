@@ -2,8 +2,8 @@
 
 import mockFs from 'mock-fs';
 import parseMkDocsYAML from '../parseMkDocsYAML';
-import { Dependencies } from '../../../app/types/dependencies';
-import { makeDependencies } from '../../../app/makeDependencies';
+import { Dependencies } from '../../../../utils/types/dependencies';
+import { makeDependencies } from '../../../../utils/makeDependencies';
 
 describe('mkDocs_parseMkDocsYAML', () => {
   const dependencies: Dependencies = makeDependencies();

@@ -11,59 +11,32 @@ import rename from './verbs/rename';
 import deleteFile from './verbs/deleteFile';
 
 /**
- * Factory function that creates an OS utility object providing file system operations.
+ * **OS Utility Factory**
  *
- * This object offers a collection of methods for interacting with the file system, abstracting common tasks such as reading and writing files, managing directories, and handling file operations. Each method corresponds to a verb function that performs a specific operation.
+ * Provides an interface for common file system operations, abstracting direct interactions with Node.js `fs` module.
  *
  * **Available Methods:**
  *
- * - **readFile(filePath): Promise<string>**
- *   - Reads the contents of a file.
- * - **writeFile(filePath, content): Promise<void>**
- *   - Writes content to a file.
- * - **fileExists(filePath): Promise<boolean>**
- *   - Checks if a file exists at a given path.
- * - **mkdir(directoryPath): Promise<void>**
- *   - Creates a directory.
- * - **readdir(directoryPath): Promise<Dirent[]>**
- *   - Reads the contents of a directory.
- * - **copyFile(source, destination): Promise<void>**
- *   - Copies a file from one location to another.
- * - **rename(oldPath, newPath): Promise<void>**
- *   - Renames or moves a file or directory.
- * - **deleteFile(filePath): Promise<void>**
- *   - Deletes a file.
+ * - {@link readFile}
+ * - {@link writeFile}
+ * - {@link fileExists}
+ * - {@link mkdir}
+ * - {@link readdir}
+ * - {@link copyFile}
+ * - {@link rename}
+ * - {@link deleteFile}
  *
  * @param d - The dependencies required by the OS verbs.
  * @returns An object containing all the OS verb functions.
  *
  * @example
  * ```typescript
- * // Initialize the OS utility
  * const os = makeOs(dependencies);
- *
- * // Use the readFile method
- * os.readFile('path/to/file.txt')
- *   .then((content) => {
- *     console.log('File content:', content);
- *   })
- *   .catch((error) => {
- *     console.error('Error reading file:', error);
- *   });
- *
- * // Check if a file exists
- * os.fileExists('path/to/file.txt')
- *   .then((exists) => {
- *     console.log('File exists:', exists);
- *   });
- *
- * // Create a directory
- * os.mkdir('path/to/new/directory')
- *   .then(() => {
- *     console.log('Directory created');
- *   });
+ * const content = await os.readFile('path/to/file.txt');
+ * console.log('File content:', content);
  * ```
  *
+ * @see {@link Dependencies}
  * @category OS
  */
 export default function makeOs(d: Dependencies) {

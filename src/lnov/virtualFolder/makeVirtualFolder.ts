@@ -8,12 +8,21 @@ import processPlanningAiCommand from './verbs/processPlanningAiCommand';
 import processDebuggingAiCommand from './verbs/processDebuggingAiCommand';
 
 /**
- * Factory function that creates a VirtualFolder utility object providing functions for generating and managing virtual folders.
+ * **Virtual Folder AI Factory**
  *
- * @param d - The dependencies required by the VirtualFolder verbs.
- * @returns An object containing all the VirtualFolder verb functions.
+ * Creates a utility object for AI interactions related to virtual folder operations. Each method maintains a separate conversation context with the AI model.
  *
- * @category VirtualFolder
+ * **Available Methods:**
+ *
+ * - {@link getResponseFromPlanningAi}: Interacts with the AI for planning tasks.
+ * - {@link getResponseFromFileCompressionAi}: Interacts with the AI for file compression tasks.
+ * - {@link getResponseFromDebuggerAi}: Interacts with the AI for debugging tasks.
+ *
+ * @param d - The dependencies required by the VirtualFolderAi verbs.
+ * @returns An object containing all the AI verb functions.
+ *
+ * @see {@link Dependencies}
+ * @category VirtualFolder AI
  */
 export default function makeVirtualFolder(d: Dependencies) {
   return {

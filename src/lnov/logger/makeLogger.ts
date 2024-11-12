@@ -1,9 +1,11 @@
 // lnov/logger/makeLogger.ts
 
 /**
- * Factory function that creates a simple logger utility.
+ * **Logger Factory**
  *
- * The logger provides three methods:
+ * Creates a simple logger utility with methods for different log levels.
+ *
+ * **Available Methods:**
  * - `info(message: string)`: Logs an informational message.
  * - `warn(message: string)`: Logs a warning message.
  * - `error(message: string)`: Logs an error message.
@@ -18,6 +20,7 @@
  * logger.error('Unhandled exception occurred.');
  * ```
  *
+ * @see {@link Logger}
  * @category Logger
  */
 export default function makeLogger() {

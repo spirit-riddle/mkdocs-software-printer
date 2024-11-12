@@ -3,24 +3,23 @@
 import { Dependencies } from '../../../utils/types/dependencies';
 
 /**
- * Reads the content of a file.
+ * **Read File Content**
+ *
+ * Reads the content of a file at the specified path and returns it as a string.
  *
  * @param filePath - The path to the file.
  * @returns A promise that resolves to the file's content as a string.
  *
+ * @throws Will throw an error if the file cannot be read.
+ *
  * @example
  * ```typescript
- * // Use the readFile method
- * os.readFile('path/to/file.txt')
- *   .then((content) => {
- *     console.log('File content:', content);
- *   })
- *   .catch((error) => {
- *     console.error('Error reading file:', error);
- *   });
+ * const content = await os.readFile('path/to/file.txt');
+ * console.log('File content:', content);
  * ```
  *
- * @category OS
+ * @see {@link writeFile}
+ * @category OS Verbs
  */
 export default function readFile(d: Dependencies) {
   return async function (filePath: string): Promise<string> {
