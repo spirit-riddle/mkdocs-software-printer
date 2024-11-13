@@ -1,39 +1,51 @@
-name: Deploy Documentation
+name: Deploy Documentation to GitHub Pages
 
 on:
   push:
     branches:
-      - main
+      - main  # Change this if your default branch is different
 
 jobs:
-  deploy-docs:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '16'  # Adjust as needed for your TypeDocs build
 
-      - name: Install and Build TypeDocs
+      - name: Install TypeDocs dependencies
         run: |
           npm install
-          npx typedoc --out docs/typedoc
+
+      - name: Build TypeDocs
+        run: |
+          npx typedoc --out docs/typedoc  # Adjust output folder as needed
 
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.x'
+          python-version: '3.x'  # Ensure this matches the version for MkDocs
 
-      - name: Install and Build MkDocs
+      - name: Install MkDocs dependencies
         run: |
           pip install mkdocs mkdocs-material
-          mkdocs build
+
+      - name: Build MkDocs
+        run: |
+          mkdocs build  # This will output to the default './site' directory
+
+      - name: Copy TypeDocs to MkDocs site folder
+        run: |
+          mkdir -p ./site/typedoc
+          cp -r ./docs/typedoc/* ./site/typedoc/  # Copy TypeDocs output into MkDocs' site directory
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+          publish_dir: ./site  # Publish the MkDocs output (with TypeDocs included)
