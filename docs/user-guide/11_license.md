@@ -1,3 +1,11 @@
+# License
+
+MkDocs Software Printer is licensed under the **MIT License**.
+
+---
+
+## **MIT License**
+
 MIT License
 
 Copyright (c) 2024 Michael (spirit-riddle)
@@ -19,3 +27,9 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+---
+
+[Back to Home](index.md)
+

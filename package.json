@@ -6,8 +6,9 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "test": "jest",
-    "docs": "typedoc",
-    "docs:os": "typedoc"
+    "docs": "concurrently \"npm run typedoc\" \"npm run mkdocs\"",
+    "typedoc": "typedoc",
+    "mkdocs": "mkdocs serve"
   },
   "jest": {
     "testEnvironment": "node",
@@ -35,6 +36,7 @@
     "@types/jest": "^29.5.14",
     "@types/mock-fs": "^4.13.4",
     "@types/node": "^18.19.59",
+    "concurrently": "^9.1.0",
     "jest": "^29.7.0",
     "mock-fs": "^5.4.0",
     "ts-jest": "^29.2.5",
