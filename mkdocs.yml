@@ -14,15 +14,10 @@ nav:
   - FAQ: ./user-guide/09_faq.md
   - Support and Contributions: ./user-guide/10_support_and_contributions.md
   - License: ./user-guide/11_license.md
-  - System Documentation: ../../system/index.html
+  - System Documentation: /mkdocs-software-printer/system/index.html
 theme:
   name: material
-extra:
-  social:
-    - icon: fontawesome/solid/book
-      link: ../../system/index.html
-      name: System Documentation
-
+  custom_dir: docs/overrides
 
 markdown_extensions:
   - admonition
@@ -34,3 +29,6 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.inlinehilite
   - pymdownx.superfences
+
+extra_javascript:
+  - https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js
