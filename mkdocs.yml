@@ -1,4 +1,6 @@
 site_name: MkDocs Software Printer User Guide
+site_url: https://spirit-riddle.github.io/mkdocs-software-printer/
+base_url: /mkdocs-software-printer/
 nav:
   - Home: ./user-guide/index.md
   - Introduction: ./user-guide/01_introduction.md
