@@ -2,10 +2,9 @@
 
 import mockFs from 'mock-fs';
 import findMkDocsFiles from '../findMkDocsFiles';
-import { Dependencies } from '../../../app/types/dependencies';
-import * as fs from 'fs';
 import * as path from 'path';
-import { makeDependencies } from '../../../app/makeDependencies';
+import { Dependencies } from '../../../../utils/types/dependencies';
+import { makeDependencies } from '../../../../utils/makeDependencies';
 
 describe('mkDocs_findMkDocsFiles', () => {
   const dependencies: Dependencies = makeDependencies()

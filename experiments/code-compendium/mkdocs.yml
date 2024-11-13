@@ -1,0 +1,16 @@
+site_name: Code Compendium
+theme:
+  name: material
+
+nav:
+  - Table of Context: index.md
+  - Introduction: 01_Introduction.md
+  - Features: 02_Features.md
+  - Getting Started: 03_Getting_Started.md
+  - Usage: 04_Usage.md
+  - Architecture: 05_Architecture.md
+  - Development Guide: 06_Development_Guide.md
+  - Conclusion: 07_Conclusion.md
+  - Appendix: 08_Appendix.md
+  - Additional Information: 09_Additional_Information.md
+  - LICENSE: LICENSE.md

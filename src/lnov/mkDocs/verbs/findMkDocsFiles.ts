@@ -1,26 +1,25 @@
-// verbs/findMkDocsFiles.ts
+// lnov/mkDocs/verbs/findMkDocsFiles.ts
 
 import { Dependencies } from '../../../utils/types/dependencies';
 
 /**
- * Finds MkDocs YAML configuration files in a given directory.
+ * **Find MkDocs Configuration Files**
+ *
+ * Recursively searches for MkDocs YAML configuration files (`mkdocs.yml` or `mkdocs.yaml`) starting from the specified directory.
  *
  * @param directoryPath - The path to the directory to search.
  * @returns A promise that resolves to an array of file paths to MkDocs YAML files.
  *
+ * @throws Will throw an error if the directory cannot be read.
+ *
  * @example
  * ```typescript
- * // Use the findMkDocsFiles method
- * mkDocs.findMkDocsFiles('path/to/project')
- *   .then((files) => {
- *     console.log('Found MkDocs files:', files);
- *   })
- *   .catch((error) => {
- *     console.error('Error finding MkDocs files:', error);
- *   });
+ * const files = await mkDocs.findMkDocsFiles('path/to/project');
+ * console.log('Found MkDocs files:', files);
  * ```
  *
- * @category MkDocs
+ * @see {@link makeMkDocs}
+ * @category MkDocs Verbs
  */
 export default function findMkDocsFiles(d: Dependencies) {
   return async function (directoryPath: string): Promise<string[]> {

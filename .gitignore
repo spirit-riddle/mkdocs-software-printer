@@ -4,6 +4,4 @@ dist
 .env
 
 # Project:
-project-in-prompt-form
-generated-project
-output
+.maverick-spirit

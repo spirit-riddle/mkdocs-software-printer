@@ -1,4 +1,3 @@
-
 # MkDocs Software Printer - README
 
 ## Overview
@@ -51,14 +50,13 @@ npm start -- --input ./mkdocs-project --output ./generated-project
 
 The script will prompt you to specify the programming language for the project. Once selected, the AI will start generating the project structure and files iteratively.
 
-
 ### Input Directory Example with Multiple Projects
 
 You can structure your input directory to contain `multiple MkDocs projects`, each with a separate mkdocs.yml configuration. 
 
 Example:
 
-``` file-directory
+```
 /input-directory
 ├── project1/
 │   ├── docs/
@@ -68,6 +66,25 @@ Example:
 │   └── mkdocs.yml
 ```
 
+## Experimental Debugger
+
+The MkDocs Software Printer includes an **experimental debugging feature** that is disabled by default. This feature allows for enhanced debugging and tracking of modifications but is currently in an experimental phase.
+
+### Enabling the Experimental Debugger
+
+To activate the debugger, use the `--experimental-debugger` flag in the command line:
+
+```sh
+npm start -- --input <input-directory> --output <output-directory> --experimental-debugger
+```
+
+- When enabled, this flag loads the debugging module, allowing for enhanced command processing and code modification tracking.
+- The debugger logs each modification in detail, providing insight into each step the AI takes during the generation and troubleshooting of the project.
+
+### Important Notes
+
+- The **experimental debugger** only loads when the `--experimental-debugger` flag is present. If omitted, the debugger remains inactive, keeping the tool’s performance optimized for non-debugging tasks.
+- Please note that this feature may change in future releases as we refine its capabilities.
 
 ## Contributing
 
@@ -75,4 +92,4 @@ Contributions are welcome! If you have suggestions for new features, improvement
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details. 

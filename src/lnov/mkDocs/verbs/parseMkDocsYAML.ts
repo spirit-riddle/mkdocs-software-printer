@@ -1,4 +1,4 @@
-// verbs/parseMkDocsYAML.ts
+// lnov/mkDocs/verbs/parseMkDocsYAML.ts
 
 import { Dependencies } from '../../../utils/types/dependencies';
 
@@ -13,24 +13,23 @@ export interface MkDocsConfig {
 }
 
 /**
- * Parses a MkDocs YAML configuration file.
+ * **Parse MkDocs YAML Configuration**
+ *
+ * Parses a MkDocs YAML configuration file and returns its content as a JavaScript object.
  *
  * @param filePath - The path to the MkDocs YAML file.
  * @returns A promise that resolves to the parsed MkDocs configuration object.
  *
+ * @throws Will throw an error if the file cannot be read or parsed.
+ *
  * @example
  * ```typescript
- * // Use the parseMkDocsYAML method
- * mkDocs.parseMkDocsYAML('path/to/mkdocs.yml')
- *   .then((config) => {
- *     console.log('Parsed MkDocs config:', config);
- *   })
- *   .catch((error) => {
- *     console.error('Error parsing MkDocs YAML:', error);
- *   });
+ * const config = await mkDocs.parseMkDocsYAML('path/to/mkdocs.yml');
+ * console.log('Site Name:', config.site_name);
  * ```
  *
- * @category MkDocs
+ * @see {@link MkDocsConfig}
+ * @category MkDocs Verbs
  */
 export default function parseMkDocsYAML(d: Dependencies) {
   return async function (filePath: string): Promise<MkDocsConfig> {

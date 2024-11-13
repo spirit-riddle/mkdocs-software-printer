@@ -10,20 +10,20 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 /**
- * Creates an object containing all external dependencies required by the application.
+ * **Dependencies Factory**
  *
- * @returns An object with all dependencies.
+ * Aggregates and provides all external dependencies required by the application in a single object. This promotes better testability and decoupling.
  *
- * @category App
+ * @returns An object containing all dependencies.
+ *
+ * @see {@link Dependencies}
+ * @category Utilities
  */
 export function makeDependencies(): Dependencies {
   return {
     fs,
     path,
     yaml,
-    // blueprintAiClient: new GroqClient({
-    //   apiKey: process.env.BLUEPRINT_AI_API_KEY, // Ensure the API key is set in your .env file
-    // }),
     // Initialize other dependencies as needed
   };
 }

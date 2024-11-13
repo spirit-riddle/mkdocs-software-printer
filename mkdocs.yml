@@ -1,0 +1,34 @@
+site_name: MkDocs Software Printer User Guide
+nav:
+  - Home: ./user-guide/index.md
+  - Introduction: ./user-guide/01_introduction.md
+  - Features: ./user-guide/02_features.md
+  - Installation: ./user-guide/03_installation.md
+  - Configuration: ./user-guide/04_configuration.md
+  - Usage: ./user-guide/05_usage.md
+  - Workflow Overview: ./user-guide/06_workflow_overview.md
+  - Advanced Features: ./user-guide/07_advanced_features.md
+  - Troubleshooting: ./user-guide/08_troubleshooting.md
+  - FAQ: ./user-guide/09_faq.md
+  - Support and Contributions: ./user-guide/10_support_and_contributions.md
+  - License: ./user-guide/11_license.md
+  - System Documentation: ../../system/index.html
+theme:
+  name: material
+extra:
+  social:
+    - icon: fontawesome/solid/book
+      link: ../../system/index.html
+      name: System Documentation
+
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true      
+  - codehilite:
+      guess_lang: false
+      linenums: true
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
