@@ -24,7 +24,11 @@ jobs:
 
       - name: Build TypeDocs
         run: |
-          npx typedoc --out docs/typedoc  # Adjust output folder as needed
+          npx typedoc --out docs/system  # Adjust output folder as needed
+
+      - name: Copy Google Analytics Script
+        run: |
+          cp .typedoc/google-analytics.js docs/system/google-analytics.js
 
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -42,7 +46,7 @@ jobs:
       - name: Copy TypeDocs to MkDocs site folder
         run: |
           mkdir -p ./site/typedoc
-          cp -r ./docs/typedoc/* ./site/typedoc/  # Copy TypeDocs output into MkDocs' site directory
+          cp -r ./docs/system/* ./site/typedoc/  # Copy TypeDocs output into MkDocs' site directory
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
