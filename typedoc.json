@@ -11,5 +11,5 @@
   "readme": "none",
   "entryPoints": ["src"],
   "entryPointStrategy": "expand",
-  "customJs": "google-analytics.js"
+  "customJs": "../google-analytics.js"
 }
