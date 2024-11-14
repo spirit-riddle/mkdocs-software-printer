@@ -10,6 +10,6 @@
   "hideGenerator": true,
   "readme": "none",
   "entryPoints": ["src"],
-  "entryPointStrategy": "expand",
-  "customJs": "../google-analytics.js"
+  "entryPointStrategy": "expand"
+  // "customJs": "../google-analytics.js"
 }
