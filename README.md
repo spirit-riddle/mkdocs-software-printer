@@ -4,6 +4,13 @@
 
 The MkDocs Software Printer is a tool designed to transform your Markdown documentation into a fully structured software project. By leveraging MkDocs and advanced AI integration, it automates the generation of folder structures, blueprint files, and contextual documentation based on your existing MkDocs configuration. This system allows you to convert your technical documentation into a complete, modular software project with minimal manual effort.
 
+**Website**: [spirit-riddle.com](https://spirit-riddle.com)  
+**Documentation**:  
+- [MkDocs Software Printer User Guide](https://spirit-riddle.github.io/mkdocs-software-printer/)
+- [MkDocs System Documentation](https://spirit-riddle.github.io/mkdocs-software-printer/system)
+
+> **Note**: This project is actively in development, and updates will be made regularly. Stay tuned for new features and improvements.
+
 ## Installation
 
 To install the MkDocs Software Printer, make sure you have Node.js and npm installed on your system.
@@ -66,6 +73,28 @@ Example:
 │   └── mkdocs.yml
 ```
 
+## Generating Documentation
+
+To generate and serve the documentation locally, use the following command:
+
+```sh
+npm run docs
+```
+
+This command runs both TypeDoc (for API documentation) and MkDocs (for user documentation) simultaneously. It includes:
+
+- **TypeDoc**: Generates API documentation based on TypeScript code in the project. You can also run this individually with:
+  ```sh
+  npm run typedoc
+  ```
+
+- **MkDocs**: Serves the MkDocs documentation locally, accessible at `http://127.0.0.1:8000`. You can also run this individually with:
+  ```sh
+  npm run mkdocs
+  ```
+
+The output will be located in the `docs/system` directory for TypeDoc and served locally for MkDocs.
+
 ## Experimental Debugger
 
 The MkDocs Software Printer includes an **experimental debugging feature** that is disabled by default. This feature allows for enhanced debugging and tracking of modifications but is currently in an experimental phase.
@@ -92,4 +121,5 @@ Contributions are welcome! If you have suggestions for new features, improvement
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details. 
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
