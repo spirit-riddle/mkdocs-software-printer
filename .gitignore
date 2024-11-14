@@ -3,6 +3,9 @@ node_modules
 dist
 .env
 
+# MkDocs
+site
+
 # Project:
 .maverick-spirit
 zip-folder
