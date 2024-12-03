@@ -33,4 +33,4 @@ markdown_extensions:
 extra_javascript:
   - https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js
 
-google_analytics: ["G-NKZN8BZHQV", "auto"]
+# google_analytics: ["G-NKZN8BZHQV", "auto"]

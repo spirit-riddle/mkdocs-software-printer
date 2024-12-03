@@ -1,12 +1,12 @@
 // processes/generateVirtualFolderFromMkDocs/index.ts
 
 import { makeDependencies } from '../utils/makeDependencies';
-import makeMkDocs from '../lnov/mkDocs/makeMkDocs';
-import makeVirtualFolder from '../lnov/virtualFolder/makeVirtualFolder';
-import makeVirtualFolderAi from '../lnov/virtualFolder/ai/makeVirtualFolderAi';
-import { Folder, ProjectPlan, File } from '../lnov/virtualFolder/types/projectPlan';
+import makeMkDocs from '../lov/mkDocs/makeMkDocs';
+import makeVirtualFolder from '../lov/virtualFolder/makeVirtualFolder';
+import makeVirtualFolderAi from '../lov/virtualFolderAI/makeVirtualFolderAi';
+import { Folder, ProjectPlan, File } from '../lov/virtualFolder/types/projectPlan';
 import { Dependencies } from '../utils/types/dependencies';
-import makeOs from '../lnov/os/makeOs';
+import makeOs from '../lov/os/makeOs';
 import readline from 'readline';
 import talkTrack from "@maverick-spirit/talk-track";
 
@@ -134,9 +134,8 @@ ${combinedMarkdown}
     const aiCommandsPath = d.path.join(
       __dirname,
       '..',
-      'lnov',
-      'virtualFolder',
-      'ai',
+      'lov',
+      'virtualFolderAI',
       'instructions',
       'AIPlanningCommandline.md'
     );
@@ -287,9 +286,8 @@ Please provide your next commands.
       const debuggerAiCommandsPath = d.path.join(
         __dirname,
         '..',
-        'lnov',
-        'virtualFolder',
-        'ai',
+        'lov',
+        'virtualFolderAI',
         'instructions',
         'AIDebuggerCommandline.md'
       );
